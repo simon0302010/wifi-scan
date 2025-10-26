@@ -20,7 +20,7 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
                                 },
                                 ssid: String::new(),
                                 channel: match bss.frequency {
-                                    Some(frequency) => frequency.to_string(),
+                                    Some(frequency) => get_channel(frequency),
                                     None => String::new()
                                 },
                                 signal_level: match bss.signal {
@@ -31,6 +31,7 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
                             });
                         }}
 
+                        // TODO: combine results of multiple interfaces
                         return Ok(results);
                     }
                 }
@@ -49,4 +50,18 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
 
 fn convert_mac(bytes: Vec<u8>) -> String {
     bytes.iter().map(|b| format!("{:02x}", b)).collect::<Vec<_>>().join(":")
+}
+
+fn get_channel(frequency: u32) -> String {
+    if (2412..=2472).contains(&frequency) {
+        ((frequency - 2407) / 5).to_string()
+    } else if frequency == 2484 {
+        "14".to_string() // special case (Japan)
+    } else if (5180..=5895).contains(&frequency) {
+        ((frequency - 5000) / 5).to_string()
+    } else if (5955..=7115).contains(&frequency) {
+        ((frequency - 5950) / 5).to_string()
+    } else {
+        "Unknown".to_string()
+    }
 }
