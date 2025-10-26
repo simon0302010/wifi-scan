@@ -4,7 +4,7 @@ use crate::{Error, Result, Wifi};
 
 use neli_wifi::Socket as SocketN;
 use netlink_rust::{Protocol, generic, Socket};
-use nl80211_rs::{self as nl80211, information_element::InformationElement};
+use nl80211_rs::{self as nl80211, information_element::{AuthenticationKeyManagement, InformationElement}};
 
 /// Returns a list of WiFi hotspots in your area
 pub(crate) fn scan() -> Result<Vec<Wifi>> {
@@ -32,7 +32,7 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
                                             Some(bytes) => convert_mac(bytes),
                                             None => String::new()
                                         },
-                                        ssid: match bss.information_elements {
+                                        ssid: match bss.information_elements.clone() {
                                             Some(ie_data) => get_ssid(ie_data),
                                             None => String::new()
                                         },
@@ -44,7 +44,10 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
                                             Some(signal) => format!("{:.2}", signal as f32 / 100.0),
                                             None => String::new()
                                         },
-                                        security: String::new()
+                                        security: match bss.information_elements.clone() {
+                                            Some(ie_data) => get_security(ie_data),
+                                            None => String::new()
+                                        }
                                     });
                                 }
                             }
@@ -122,6 +125,43 @@ fn get_ssid(ie_data: Vec<u8>) -> String {
             for ie in ies {
                 if let InformationElement::Ssid(ssid_ie) = ie {
                     return ssid_ie.ssid;
+                }
+            }
+        }
+        Err(_) => return String::new()
+    }
+
+    return String::new();
+}
+
+fn get_security(ie_data: Vec<u8>) -> String {
+    let ie_data: &[u8] = &ie_data;
+    match InformationElement::parse_all(&ie_data) {
+        Ok(ies) => {
+            for ie in ies {
+                if let InformationElement::RobustSecurityNetwork(sec_ie) = ie {
+                    let mut securities: Vec<String> = Vec::new();
+                    
+                    for akm in sec_ie.akms {
+                        let security = match akm {
+                            AuthenticationKeyManagement::PairwiseMasterKeySecurityAssociation => "PMKSA",
+                            AuthenticationKeyManagement::PreSharedKey => "PSK",
+                            AuthenticationKeyManagement::FastTransitionPMKSA => "FT-PMKSA",
+                            AuthenticationKeyManagement::FastTransitionPreSharedKey => "FT-PSK",
+                            AuthenticationKeyManagement::FastTransitionSAE => "FT-SAE",
+                            AuthenticationKeyManagement::PMKSASha256 => "PMKSA-SHA256",
+                            AuthenticationKeyManagement::PreSharedKeySha256 => "PSK-SHA256",
+                            AuthenticationKeyManagement::SimultaneousAuthenticationOfEquals => "SAE",
+                            AuthenticationKeyManagement::TunneledDirectLinkSetup => "TDLS",
+                            _ => ""
+                        };
+
+                        if !security.is_empty() {
+                            securities.push(security.to_string());
+                        }
+                    }
+
+                    return securities.join(", ");
                 }
             }
         }
