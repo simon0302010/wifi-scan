@@ -72,6 +72,7 @@ pub struct Wifi {
     pub mac: String,
     /// hotspot name
     pub ssid: String,
+    /// channel the hotspot is on
     pub channel: String,
     /// wifi signal strength in dBm
     pub signal_level: String,

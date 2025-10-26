@@ -20,3 +20,6 @@ itertools = "0.14.*"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 neli-wifi = "0.6.*"
+neli = "0.6.*"
+nl80211-rs = { git = "https://github.com/blueluna/nl80211-rs", branch = "master" }
+netlink-rust = { git = "https://github.com/blueluna/netlink-rs", branch = "master" }
