@@ -110,7 +110,7 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {}
 
 /// Returns a list of WiFi hotspots in your area.
-/// Uses `airport` on macOS and `iw` on Linux.
+/// Uses `airport` on macOS
 pub fn scan() -> Result<Vec<Wifi>> {
     crate::sys::scan()
 }

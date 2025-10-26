@@ -4,7 +4,7 @@ use crate::{Error, Result, Wifi};
 
 use neli_wifi::Socket as SocketN;
 use netlink_rust::{Protocol, generic, Socket};
-use nl80211_rs as nl80211;
+use nl80211_rs::{self as nl80211, information_element::InformationElement};
 
 /// Returns a list of WiFi hotspots in your area
 pub(crate) fn scan() -> Result<Vec<Wifi>> {
@@ -15,7 +15,12 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
                 for interface in interfaces {
                     if let Some(index) = interface.index {
                         // trigger scan on interface
-                        trigger_scan(index)?;
+                        if let Err(_) = trigger_scan(index) {
+                            continue;
+                        }
+
+                        // just sleep a bit
+                        sleep(Duration::from_millis(1500));
 
                         let mut results: Vec<Wifi> = Vec::new();
                         let bss_list = socket_conn.get_bss_info(index);
@@ -25,9 +30,12 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
                                     results.push(Wifi {
                                         mac: match bss.bssid {
                                             Some(bytes) => convert_mac(bytes),
-                                            None => String::new(),
+                                            None => String::new()
                                         },
-                                        ssid: String::new(),
+                                        ssid: match bss.information_elements {
+                                            Some(ie_data) => get_ssid(ie_data),
+                                            None => String::new()
+                                        },
                                         channel: match bss.frequency {
                                             Some(frequency) => get_channel(frequency),
                                             None => String::new()
@@ -36,7 +44,7 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
                                             Some(signal) => format!("{:.2}", signal as f32 / 100.0),
                                             None => String::new()
                                         },
-                                        security: String::new(),
+                                        security: String::new()
                                     });
                                 }
                             }
@@ -105,4 +113,20 @@ fn get_channel(frequency: u32) -> String {
     } else {
         "Unknown".to_string()
     }
+}
+
+fn get_ssid(ie_data: Vec<u8>) -> String {
+    let ie_data: &[u8] = &ie_data;
+    match InformationElement::parse_all(&ie_data) {
+        Ok(ies) => {
+            for ie in ies {
+                if let InformationElement::Ssid(ssid_ie) = ie {
+                    return ssid_ie.ssid;
+                }
+            }
+        }
+        Err(_) => return String::new()
+    }
+
+    return String::new();
 }
