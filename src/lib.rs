@@ -60,6 +60,9 @@ pub enum Error {
     FailedToParse,
     NoValue,
     HeaderNotFound(&'static str),
+    InterfaceError(String),
+    SocketError(String),
+    UnknownError,
 }
 
 /// Wifi struct used to return information about wifi hotspots
@@ -89,7 +92,16 @@ impl fmt::Display for Error {
             Error::NoValue => write!(f, "Value expected but is not present"),
             Error::HeaderNotFound(header) => {
                 write!(f, "Did not find header {} but expected it", header)
-            }
+            },
+            Error::SocketError(detail) => {
+                write!(f, "Error while creating socket: {}", detail)
+            },
+            Error::InterfaceError(detail) => {
+                write!(f, "Interface error: {}", detail)
+            },
+            Error::UnknownError => {
+                write!(f, "Unknown error occured")
+            },
         }
     }
 }
