@@ -12,25 +12,25 @@
 //!
 //! # Usage
 //!
-//! This crate is on [crates.io](https://crates.io/crates/wifiscanner) and can be
-//! used by adding `wifiscanner` to the dependencies in your project's `Cargo.toml`.
+//! This crate is on [crates.io](https://crates.io/crates/wifi_scan) and can be
+//! used by adding `wifi_scan` to the dependencies in your project's `Cargo.toml`.
 //!
 //! ```toml
 //! [dependencies]
-//! wifiscanner = "0.5.*"
+//! wifi_scan = "0.5.*"
 //! ```
 //!
 //! and this to your crate root:
 //!
 //! ```rust
-//! extern crate wifiscanner;
+//! extern crate wifi_scan;
 //! ```
 //!
 //! # Example
 //!
 //! ```
-//! use wifiscanner;
-//! println!("{:?}", wifiscanner::scan());
+//! use wifi_scan;
+//! println!("{:?}", wifi_scan::scan());
 //! ```
 //!
 //! Alternatively if you've cloned the the Git repo, you can run the above example

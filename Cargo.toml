@@ -1,17 +1,19 @@
 [package]
-name = "wifiscanner"
+name = "wifi_scan"
 version = "0.5.1"
-authors = ["Mark Sta Ana <booyaabooyaabooyaa@gmail.com>"]
-description = "List WiFi hotspots in your area"
-repository = "https://github.com/booyaa/wifiscanner"
+authors = ["simon0302010 <simon@hackclub.app>"]
+description = "List WiFi hotspots in your area. Fork of booyaa/wifiscanner. "
+repository = "https://github.com/simon0302010/wifi-scan"
 documentation = "https://docs.rs/wifiscanner"
 readme = "README.md"
 keywords = ["wifi","hotspots","network"]
 license = "Apache-2.0"
+edition = "2024"
 
 [[bin]]
-name = "wifiscanner"
+name = "wifi_scan"
+path = "src/bin/main.rs"
 
 [dependencies]
 regex = "1"
-itertools = "0.10.0"
+itertools = "0.14.*"

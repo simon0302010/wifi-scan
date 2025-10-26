@@ -1,5 +1,5 @@
 fn main() {
-    let networks = wifiscanner::scan().expect("Cannot scan network");
+    let networks = wifi_scan::scan().expect("Cannot scan network");
     for network in networks {
         println!(
             "{} {:15} {:10} {:4} {}",

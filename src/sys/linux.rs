@@ -4,7 +4,7 @@ use std::process::Command;
 
 /// Returns a list of WiFi hotspots in your area - (Linux) uses `iw`
 pub(crate) fn scan() -> Result<Vec<Wifi>> {
-    const PATH_ENV: &'static str = "PATH";
+    const PATH_ENV: &str = "PATH";
     let path_system = "/usr/sbin:/sbin";
     let path = env::var_os(PATH_ENV).map_or(path_system.to_string(), |v| {
         format!("{}:{}", v.to_string_lossy().into_owned(), path_system)
@@ -42,7 +42,7 @@ fn parse_iw_dev(interfaces: &str) -> Result<String> {
         .last()
         .ok_or(Error::NoValue)?
         .split("\n")
-        .nth(0)
+        .next()
         .ok_or(Error::NoValue)
         .map(|text| text.to_string())
 }

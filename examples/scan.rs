@@ -1,3 +1,3 @@
 fn main() {
-    println!("{:?}", wifiscanner::scan());
+    println!("{:?}", wifi_scan::scan());
 }

@@ -1,4 +1,4 @@
-# Contributing to wifiscanner
+# Contributing to wifi_scan
 
 ## How to contribute
 

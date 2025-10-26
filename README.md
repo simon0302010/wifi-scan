@@ -1,24 +1,9 @@
-# wifiscanner
+# wifi_scan
 
-[![CI](https://github.com/booyaa/wifiscanner/workflows/CI/badge.svg)](https://github.com/booyaa/wifiscanner/actions?query=workflow%3ACI)
-[![Crates](https://img.shields.io/crates/v/wifiscanner.svg)](https://crates.io/crates/wifiscanner)
+[![CI](https://github.com/simon0302010/wifi_scan/workflows/CI/badge.svg)](https://github.com/simon0302010/wifi_scan/actions?query=workflow%3ACI)
+[![Crates](https://img.shields.io/crates/v/wifi_scam.svg)](https://crates.io/crates/wifi_scan)
 [![docs.rs](https://docs.rs/wifiscanner/badge.svg)](https://docs.rs/wifiscanner)
-[![dependency status](https://deps.rs/repo/github/booyaa/wifiscanner/status.svg)](https://deps.rs/repo/github/booyaa/wifiscanner)
-
-## Important note to existing contributors!
-
-If you have a local clone you will need to update your default branch from `master` to `main`. The easiest way to do this is to delete the clone and recreate it.
-
-Alternatively type the following commands (thanks [Scott](https://www.hanselman.com/blog/EasilyRenameYourGitDefaultBranchFromMasterToMain.aspx)):
-
-```sh
-git checkout master
-$ git branch -m master main
-$ git fetch
-$ git branch --unset-upstream
-$ git branch -u origin/main
-$ git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
-```
+[![dependency status](https://deps.rs/repo/github/simon0302010/wifi-scan/status.svg)](https://deps.rs/repo/github/simon0302010/wifi-scan)
 
 ## Intro
 
@@ -34,25 +19,25 @@ Full documentation can be found [here](https://docs.rs/wifiscanner).
 
 ## Usage
 
-This crate is [on crates.io](https://crates.io/crates/wifiscanner) and can be
-used by adding `wifiscanner` to the dependencies in your project's `Cargo.toml`.
+This crate is [on crates.io](https://crates.io/crates/wifi_scan) and can be
+used by adding `wifi_scan` to the dependencies in your project's `Cargo.toml`.
 
 ```toml
 [dependencies]
-wifiscanner = "0.5.*"
+wifi_scan = "0.5.*"
 ```
 
 and this to your crate root:
 
 ```rust
-extern crate wifiscanner;
+extern crate wifi_scan;
 ```
 
 ## Example
 
 ```rust
-use wifiscanner;
-println!("{:?}", wifiscanner::scan());
+use wifi_scan;
+println!("{:?}", wifi_scan::scan());
 ```
 
 Alternatively if you've cloned the Git repo, you can run the above example
@@ -73,12 +58,15 @@ see [CONTRIBUTING.md](/CONTRIBUTING.md)
 
 ## Contributors
 
-wifiscanner would not be possible without the following folks:
+wifi_scan would not be possible without the following folks:
 
 @alopatindev, @bizzu, @bash, @cristicbz, @lpmi-13, @brianjaustin
 
 ## Copyright
 
-Copyright 2019 Mark Sta Ana.
+Copyright 2019 Mark Sta Ana.  
+Forked and maintained by simon0302010.
+
+Copyright 2025 simon0302010.
 
 see [LICENSE](/LICENSE)

@@ -14,4 +14,4 @@ mod windows;
 pub(crate) use self::windows::*;
 
 #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
-compile_error!("wifiscan doesn't compile for this platform yet");
+compile_error!("wifi_scan doesn't compile for this platform yet");
