@@ -9,6 +9,7 @@
 //! A crate to list WiFi hotspots in your area.
 //!
 //! As of v0.5.x now supports macOS, Linux and Windows. :tada:
+//! Note: Only macOS versions up to Ventura (13) are supported.
 //!
 //! # Usage
 //!
@@ -76,7 +77,7 @@ pub struct Wifi {
     pub channel: String,
     /// wifi signal strength in dBm
     pub signal_level: String,
-    /// this field is currently empty in the Linux version of the lib
+    /// wifi security (e.g. WPA2-PSK)
     pub security: String,
 }
 
@@ -93,16 +94,16 @@ impl fmt::Display for Error {
             Error::NoValue => write!(f, "Value expected but is not present"),
             Error::HeaderNotFound(header) => {
                 write!(f, "Did not find header {} but expected it", header)
-            },
+            }
             Error::SocketError(detail) => {
                 write!(f, "Error while creating socket: {}", detail)
-            },
+            }
             Error::InterfaceError(detail) => {
                 write!(f, "Interface error: {}", detail)
-            },
+            }
             Error::UnknownError => {
                 write!(f, "Unknown error occured")
-            },
+            }
         }
     }
 }
@@ -110,7 +111,14 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {}
 
 /// Returns a list of WiFi hotspots in your area.
-/// Uses `airport` on macOS
+/// Uses `airport` on macOS and `netsh` on Windows.
+///
+/// Example:
+///
+/// ```rust
+/// use wifi_scan;
+/// println!("{:?}", wifi_scan::scan());
+/// ```
 pub fn scan() -> Result<Vec<Wifi>> {
     crate::sys::scan()
 }

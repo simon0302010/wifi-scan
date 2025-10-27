@@ -1,21 +1,19 @@
 # wifi_scan
 
-[![CI](https://github.com/simon0302010/wifi_scan/workflows/CI/badge.svg)](https://github.com/simon0302010/wifi_scan/actions?query=workflow%3ACI)
-[![Crates](https://img.shields.io/crates/v/wifi_scam.svg)](https://crates.io/crates/wifi_scan)
-[![docs.rs](https://docs.rs/wifiscanner/badge.svg)](https://docs.rs/wifiscanner)
+[![CI](https://github.com/simon0302010/wifi-scan/actions/workflows/ci.yml/badge.svg)](https://github.com/simon0302010/wifi-scan/actions/workflows/ci.yml)
+[![Crates](https://img.shields.io/crates/v/wifi_scan.svg)](https://crates.io/crates/wifi_scan)
+[![docs.rs](https://docs.rs/wifi_scan/badge.svg)](https://docs.rs/wifi_scan)
 [![dependency status](https://deps.rs/repo/github/simon0302010/wifi-scan/status.svg)](https://deps.rs/repo/github/simon0302010/wifi-scan)
 
 ## Intro
 
-A crate to list WiFi hotspots in your area.
+This is a fork of [wifiscanner](https://github.com/booyaa/wifiscanner), a crate to list WiFi hotspots in your area.
 
-As of v0.5.x now supports macOS, Linux and Windows. :tada:
+Note: Only macOS versions up to Ventura (13) are supported.
 
-Inspired by Maurice Svay's [node-wifiscanner](https://github.com/mauricesvay/node-wifiscanner)
+Tests taken from Christian Kuster's [node-wifi-scanner](https://github.com/ancasicolica/node-wifi-scanner)
 
-Tests shameless pilfered from Christian Kuster's [node-wifi-scanner](https://github.com/ancasicolica/node-wifi-scanner)
-
-Full documentation can be found [here](https://docs.rs/wifiscanner).
+Full documentation can be found [here](https://docs.rs/wifi_scan).
 
 ## Usage
 
@@ -24,7 +22,7 @@ used by adding `wifi_scan` to the dependencies in your project's `Cargo.toml`.
 
 ```toml
 [dependencies]
-wifi_scan = "0.5.*"
+wifi_scan = "0.6.*"
 ```
 
 and this to your crate root:
@@ -45,6 +43,7 @@ using: `cargo run --example scan`.
 
 ## Changelog
 
+- 0.6.0 - remove `iw` dependency for linux
 - 0.5.1 - crates.io metadata update
 - 0.5.0 - add window support (props to  @brianjaustin)
 - 0.4.0 - replace iwlist with iw (props to @alopatindev)

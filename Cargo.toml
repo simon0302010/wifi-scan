@@ -1,14 +1,14 @@
 [package]
 name = "wifi_scan"
-version = "0.5.1"
+version = "0.6.0"
 authors = ["simon0302010 <simon@hackclub.app>"]
 description = "List WiFi hotspots in your area. Fork of booyaa/wifiscanner. "
 repository = "https://github.com/simon0302010/wifi-scan"
-documentation = "https://docs.rs/wifiscanner"
+documentation = "https://docs.rs/wifi_scan"
 readme = "README.md"
 keywords = ["wifi","hotspots","network"]
 license = "Apache-2.0"
-edition = "2024"
+edition = "2021"
 
 [[bin]]
 name = "wifi_scan"

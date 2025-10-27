@@ -3,8 +3,11 @@ use std::{thread::sleep, time::Duration};
 use crate::{Error, Result, Wifi};
 
 use neli_wifi::Socket as SocketN;
-use netlink_rust::{Protocol, generic, Socket};
-use nl80211_rs::{self as nl80211, information_element::{AuthenticationKeyManagement, InformationElement}};
+use netlink_rust::{generic, Protocol, Socket};
+use nl80211_rs::{
+    self as nl80211,
+    information_element::{AuthenticationKeyManagement, InformationElement},
+};
 
 /// Returns a list of WiFi hotspots in your area. Open networks are recognised as having WPA2-PSK on Linux.
 pub(crate) fn scan() -> Result<Vec<Wifi>> {
@@ -12,6 +15,10 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
     if let Ok(mut socket_conn) = socket {
         match socket_conn.get_interfaces_info() {
             Ok(interfaces) => {
+                if interfaces.len() == 0 {
+                    println!("No WiFi adapters found.");
+                }
+
                 for interface in interfaces {
                     if let Some(index) = interface.index {
                         // trigger scan on interface
@@ -24,34 +31,38 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
 
                         let mut results: Vec<Wifi> = Vec::new();
                         let bss_list = socket_conn.get_bss_info(index);
-                        if let Ok(bss_list) = bss_list {for bss in bss_list {
-                            if let Some(seen) = bss.seen_ms_ago {
-                                if seen <= 3000 {
-                                    results.push(Wifi {
-                                        mac: match bss.bssid {
-                                            Some(bytes) => convert_mac(bytes),
-                                            None => String::new()
-                                        },
-                                        ssid: match bss.information_elements.clone() {
-                                            Some(ie_data) => get_ssid(ie_data),
-                                            None => String::new()
-                                        },
-                                        channel: match bss.frequency {
-                                            Some(frequency) => get_channel(frequency),
-                                            None => String::new()
-                                        },
-                                        signal_level: match bss.signal {
-                                            Some(signal) => format!("{:.2}", signal as f32 / 100.0),
-                                            None => String::new()
-                                        },
-                                        security: match bss.information_elements.clone() {
-                                            Some(ie_data) => get_security(ie_data),
-                                            None => String::new()
-                                        }
-                                    });
+                        if let Ok(bss_list) = bss_list {
+                            for bss in bss_list {
+                                if let Some(seen) = bss.seen_ms_ago {
+                                    if seen <= 3000 {
+                                        results.push(Wifi {
+                                            mac: match bss.bssid {
+                                                Some(bytes) => convert_mac(bytes),
+                                                None => String::new(),
+                                            },
+                                            ssid: match bss.information_elements.clone() {
+                                                Some(ie_data) => get_ssid(ie_data),
+                                                None => String::new(),
+                                            },
+                                            channel: match bss.frequency {
+                                                Some(frequency) => get_channel(frequency),
+                                                None => String::new(),
+                                            },
+                                            signal_level: match bss.signal {
+                                                Some(signal) => {
+                                                    format!("{:.2}", signal as f32 / 100.0)
+                                                }
+                                                None => String::new(),
+                                            },
+                                            security: match bss.information_elements.clone() {
+                                                Some(ie_data) => get_security(ie_data),
+                                                None => String::new(),
+                                            },
+                                        });
+                                    }
                                 }
                             }
-                        }}
+                        }
 
                         // TODO: combine results of multiple interfaces
                         return Ok(results);
@@ -59,9 +70,7 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
                 }
                 Ok(Vec::new())
             }
-            Err(e) => {
-                Err(Error::InterfaceError(e.to_string()))
-            }
+            Err(e) => Err(Error::InterfaceError(e.to_string())),
         }
     } else if let Err(e) = socket {
         Err(Error::SocketError(e.to_string()))
@@ -75,34 +84,40 @@ fn trigger_scan(ifindex: i32) -> Result<()> {
         Ok(sock) => sock,
         Err(e) => return Err(Error::SocketError(e.to_string())),
     };
-    
+
     let family = match generic::Family::from_name(&mut control_socket, "nl80211") {
         Ok(fam) => fam,
         Err(e) => return Err(Error::SocketError(e.to_string())),
     };
-    
+
     let devices = match nl80211::get_wireless_interfaces(&mut control_socket, &family) {
         Ok(dev) => dev,
         Err(e) => return Err(Error::SocketError(e.to_string())),
     };
-    
-    let device = devices.into_iter()
+
+    let device = devices
+        .into_iter()
         .find(|dev| dev.interface_index == ifindex as u32)
         .ok_or_else(|| Error::InterfaceError(format!("Interface {} not found", ifindex)))?;
-    
+
     match device.trigger_scan(&mut control_socket) {
-        Ok(_) => {
-            return Ok(())
-        },
+        Ok(_) => return Ok(()),
         Err(e) => {
-            println!("Failed to trigger scan on interface: {}", device.interface_name);
+            eprintln!(
+                "WARNING: Failed to trigger scan on interface: {}",
+                device.interface_name
+            );
             return Err(Error::SocketError(format!("Failed to trigger scan: {}", e)));
-        },
-    }    
+        }
+    }
 }
 
 fn convert_mac(bytes: Vec<u8>) -> String {
-    bytes.iter().map(|b| format!("{:02x}", b)).collect::<Vec<_>>().join(":")
+    bytes
+        .iter()
+        .map(|b| format!("{:02x}", b))
+        .collect::<Vec<_>>()
+        .join(":")
 }
 
 fn get_channel(frequency: u32) -> String {
@@ -129,7 +144,7 @@ fn get_ssid(ie_data: Vec<u8>) -> String {
                 }
             }
         }
-        Err(_) => return String::new()
+        Err(_) => return String::new(),
     }
 
     return String::new();
@@ -142,19 +157,27 @@ fn get_security(ie_data: Vec<u8>) -> String {
             for ie in ies {
                 if let InformationElement::RobustSecurityNetwork(sec_ie) = ie {
                     let mut securities: Vec<String> = Vec::new();
-                    
+
                     for akm in sec_ie.akms {
                         let security = match akm {
-                            AuthenticationKeyManagement::PairwiseMasterKeySecurityAssociation => "WPA2-Enterprise",
+                            AuthenticationKeyManagement::PairwiseMasterKeySecurityAssociation => {
+                                "WPA2-Enterprise"
+                            }
                             AuthenticationKeyManagement::PreSharedKey => "WPA2-PSK",
-                            AuthenticationKeyManagement::FastTransitionPMKSA => "WPA2-Enterprise-FT",
-                            AuthenticationKeyManagement::FastTransitionPreSharedKey => "WPA2-PSK-FT",
+                            AuthenticationKeyManagement::FastTransitionPMKSA => {
+                                "WPA2-Enterprise-FT"
+                            }
+                            AuthenticationKeyManagement::FastTransitionPreSharedKey => {
+                                "WPA2-PSK-FT"
+                            }
                             AuthenticationKeyManagement::FastTransitionSAE => "WPA3-SAE-FT",
                             AuthenticationKeyManagement::PMKSASha256 => "WPA2-Enterprise-SHA256",
                             AuthenticationKeyManagement::PreSharedKeySha256 => "WPA2-PSK-SHA256",
-                            AuthenticationKeyManagement::SimultaneousAuthenticationOfEquals => "WPA3-SAE",
+                            AuthenticationKeyManagement::SimultaneousAuthenticationOfEquals => {
+                                "WPA3-SAE"
+                            }
                             AuthenticationKeyManagement::TunneledDirectLinkSetup => "TDLS",
-                            _ => ""
+                            _ => "",
                         };
 
                         if !security.is_empty() {
@@ -170,7 +193,7 @@ fn get_security(ie_data: Vec<u8>) -> String {
                 }
             }
         }
-        Err(_) => return String::new()
+        Err(_) => return String::new(),
     }
 
     return String::new();
