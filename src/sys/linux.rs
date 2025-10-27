@@ -90,13 +90,14 @@ fn trigger_scan(ifindex: i32) -> Result<()> {
         .find(|dev| dev.interface_index == ifindex as u32)
         .ok_or_else(|| Error::InterfaceError(format!("Interface {} not found", ifindex)))?;
     
-    println!("Triggering scan on interface: {}", device.interface_name);
     match device.trigger_scan(&mut control_socket) {
         Ok(_) => {
-            println!("  Scan triggered successfully");
             return Ok(())
         },
-        Err(e) => return Err(Error::SocketError(format!("Failed to trigger scan: {}", e))),
+        Err(e) => {
+            println!("Failed to trigger scan on interface: {}", device.interface_name);
+            return Err(Error::SocketError(format!("Failed to trigger scan: {}", e)));
+        },
     }    
 }
 
@@ -108,7 +109,7 @@ fn get_channel(frequency: u32) -> String {
     if (2412..=2472).contains(&frequency) {
         ((frequency - 2407) / 5).to_string()
     } else if frequency == 2484 {
-        "14".to_string() // special case (Japan)
+        "14".to_string() // japan
     } else if (5180..=5895).contains(&frequency) {
         ((frequency - 5000) / 5).to_string()
     } else if (5955..=7115).contains(&frequency) {
