@@ -15,14 +15,16 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
     if let Ok(mut socket_conn) = socket {
         match socket_conn.get_interfaces_info() {
             Ok(interfaces) => {
-                if interfaces.len() == 0 {
-                    println!("No WiFi adapters found.");
+                if interfaces.is_empty() {
+                    return Err(Error::InterfaceError(
+                        "No WiFi adapters detected".to_string(),
+                    ));
                 }
 
                 for interface in interfaces {
                     if let Some(index) = interface.index {
                         // trigger scan on interface
-                        if let Err(_) = trigger_scan(index) {
+                        if trigger_scan(index).is_err() {
                             continue;
                         }
 
@@ -101,13 +103,13 @@ fn trigger_scan(ifindex: i32) -> Result<()> {
         .ok_or_else(|| Error::InterfaceError(format!("Interface {} not found", ifindex)))?;
 
     match device.trigger_scan(&mut control_socket) {
-        Ok(_) => return Ok(()),
+        Ok(_) => Ok(()),
         Err(e) => {
             eprintln!(
                 "WARNING: Failed to trigger scan on interface: {}",
                 device.interface_name
             );
-            return Err(Error::SocketError(format!("Failed to trigger scan: {}", e)));
+            Err(Error::SocketError(format!("Failed to trigger scan: {}", e)))
         }
     }
 }
@@ -136,7 +138,7 @@ fn get_channel(frequency: u32) -> String {
 
 fn get_ssid(ie_data: Vec<u8>) -> String {
     let ie_data: &[u8] = &ie_data;
-    match InformationElement::parse_all(&ie_data) {
+    match InformationElement::parse_all(ie_data) {
         Ok(ies) => {
             for ie in ies {
                 if let InformationElement::Ssid(ssid_ie) = ie {
@@ -147,12 +149,12 @@ fn get_ssid(ie_data: Vec<u8>) -> String {
         Err(_) => return String::new(),
     }
 
-    return String::new();
+    String::new()
 }
 
 fn get_security(ie_data: Vec<u8>) -> String {
     let ie_data: &[u8] = &ie_data;
-    match InformationElement::parse_all(&ie_data) {
+    match InformationElement::parse_all(ie_data) {
         Ok(ies) => {
             for ie in ies {
                 if let InformationElement::RobustSecurityNetwork(sec_ie) = ie {
@@ -196,5 +198,5 @@ fn get_security(ie_data: Vec<u8>) -> String {
         Err(_) => return String::new(),
     }
 
-    return String::new();
+    String::new()
 }
