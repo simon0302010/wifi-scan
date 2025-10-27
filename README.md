@@ -22,7 +22,7 @@ used by adding `wifi_scan` to the dependencies in your project's `Cargo.toml`.
 
 ```toml
 [dependencies]
-wifi_scan = "0.6.*"
+wifi_scan = { git = "https://github.com/simon0302010/wifi-scan", branch = "main" }
 ```
 
 and this to your crate root:
