@@ -6,7 +6,7 @@ use neli_wifi::Socket as SocketN;
 use netlink_rust::{Protocol, generic, Socket};
 use nl80211_rs::{self as nl80211, information_element::{AuthenticationKeyManagement, InformationElement}};
 
-/// Returns a list of WiFi hotspots in your area
+/// Returns a list of WiFi hotspots in your area. Open networks are recognised as having WPA2-PSK on Linux.
 pub(crate) fn scan() -> Result<Vec<Wifi>> {
     let socket = SocketN::connect();
     if let Ok(mut socket_conn) = socket {
@@ -144,14 +144,14 @@ fn get_security(ie_data: Vec<u8>) -> String {
                     
                     for akm in sec_ie.akms {
                         let security = match akm {
-                            AuthenticationKeyManagement::PairwiseMasterKeySecurityAssociation => "PMKSA",
-                            AuthenticationKeyManagement::PreSharedKey => "PSK",
-                            AuthenticationKeyManagement::FastTransitionPMKSA => "FT-PMKSA",
-                            AuthenticationKeyManagement::FastTransitionPreSharedKey => "FT-PSK",
-                            AuthenticationKeyManagement::FastTransitionSAE => "FT-SAE",
-                            AuthenticationKeyManagement::PMKSASha256 => "PMKSA-SHA256",
-                            AuthenticationKeyManagement::PreSharedKeySha256 => "PSK-SHA256",
-                            AuthenticationKeyManagement::SimultaneousAuthenticationOfEquals => "SAE",
+                            AuthenticationKeyManagement::PairwiseMasterKeySecurityAssociation => "WPA2-Enterprise",
+                            AuthenticationKeyManagement::PreSharedKey => "WPA2-PSK",
+                            AuthenticationKeyManagement::FastTransitionPMKSA => "WPA2-Enterprise-FT",
+                            AuthenticationKeyManagement::FastTransitionPreSharedKey => "WPA2-PSK-FT",
+                            AuthenticationKeyManagement::FastTransitionSAE => "WPA3-SAE-FT",
+                            AuthenticationKeyManagement::PMKSASha256 => "WPA2-Enterprise-SHA256",
+                            AuthenticationKeyManagement::PreSharedKeySha256 => "WPA2-PSK-SHA256",
+                            AuthenticationKeyManagement::SimultaneousAuthenticationOfEquals => "WPA3-SAE",
                             AuthenticationKeyManagement::TunneledDirectLinkSetup => "TDLS",
                             _ => ""
                         };
@@ -159,6 +159,10 @@ fn get_security(ie_data: Vec<u8>) -> String {
                         if !security.is_empty() {
                             securities.push(security.to_string());
                         }
+                    }
+
+                    if securities.is_empty() {
+                        securities.push("Unknown".to_string());
                     }
 
                     return securities.join(", ");
