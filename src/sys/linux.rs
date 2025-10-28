@@ -24,6 +24,9 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
                     ));
                 }
 
+                let mut filtered_wifis: Vec<Wifi> = Vec::new();
+                let mut all_wifis: Vec<Wifi> = Vec::new();
+
                 for interface in interfaces {
                     if let Some(index) = interface.index {
                         // trigger scan on interface
@@ -69,11 +72,16 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
                             }
                         }
 
-                        // TODO: combine results of multiple interfaces
-                        return Ok(results);
+                        all_wifis.extend(results);
                     }
                 }
-                Ok(Vec::new())
+                for wifi in all_wifis {
+                    let exists = filtered_wifis.iter().any(|x| x.mac == wifi.mac);
+                    if !exists {
+                        filtered_wifis.push(wifi);
+                    }
+                }
+                Ok(filtered_wifis)
             }
             Err(e) => Err(Error::InterfaceError(e.to_string())),
         }
