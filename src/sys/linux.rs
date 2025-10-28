@@ -30,12 +30,12 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
                 for interface in interfaces {
                     if let Some(index) = interface.index {
                         // trigger scan on interface
-                        let _ = std::panic::catch_unwind(|| {
-                            let _ = trigger_scan(index);
-                        });
+                        let scan_result = std::panic::catch_unwind(|| trigger_scan(index));
 
-                        // just sleep a bit
-                        sleep(Duration::from_millis(1500));
+                        // only sleep if trigger_scan succeeded
+                        if let Ok(Ok(_)) = scan_result {
+                            sleep(Duration::from_millis(1500));
+                        }
 
                         let mut results: Vec<Wifi> = Vec::new();
                         let bss_list = socket_conn.get_bss_info(index);
