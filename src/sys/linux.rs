@@ -9,7 +9,10 @@ use nl80211_rs::{
     information_element::{AuthenticationKeyManagement, InformationElement},
 };
 
-/// Returns a list of WiFi hotspots in your area. Open networks are recognised as having WPA2-PSK on Linux.
+/// Returns a list of WiFi hotspots in your area.
+/// Open networks are recognised as having WPA2-PSK on Linux.
+/// Uses `nl80211-rs` and `netlink-rust` crates on Linux.
+/// Very frequent scans may produce unexpected results on some machines running Linux.
 pub(crate) fn scan() -> Result<Vec<Wifi>> {
     let socket = SocketN::connect();
     if let Ok(mut socket_conn) = socket {
@@ -24,9 +27,9 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
                 for interface in interfaces {
                     if let Some(index) = interface.index {
                         // trigger scan on interface
-                        if trigger_scan(index).is_err() {
-                            continue;
-                        }
+                        let _ = std::panic::catch_unwind(|| {
+                            let _ = trigger_scan(index);
+                        });
 
                         // just sleep a bit
                         sleep(Duration::from_millis(1500));
@@ -36,7 +39,7 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
                         if let Ok(bss_list) = bss_list {
                             for bss in bss_list {
                                 if let Some(seen) = bss.seen_ms_ago {
-                                    if seen <= 3000 {
+                                    if seen <= 2500 {
                                         results.push(Wifi {
                                             mac: match bss.bssid {
                                                 Some(bytes) => convert_mac(bytes),
