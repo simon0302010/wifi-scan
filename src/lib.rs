@@ -64,6 +64,7 @@ pub enum Error {
     InterfaceError(String),
     SocketError(String),
     UnknownError,
+    ScanFailed(String)
 }
 
 /// Wifi struct used to return information about wifi hotspots
@@ -103,6 +104,9 @@ impl fmt::Display for Error {
             }
             Error::UnknownError => {
                 write!(f, "Unknown error occured")
+            }
+            Error::ScanFailed(detail) => {
+                write!(f, "Scan Failed: {}", detail)
             }
         }
     }

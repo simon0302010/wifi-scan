@@ -12,7 +12,8 @@ use nl80211_rs::{
 /// Returns a list of WiFi hotspots in your area.
 /// Open networks are recognised as having WPA2-PSK on Linux.
 /// Uses `nl80211-rs` and `netlink-rust` crates on Linux.
-/// Very frequent scans may produce unexpected results on some machines running Linux.
+/// On Linux, very frequent scan may produce unexpected results on some machines,
+/// scanning requires root privileges and data can be up to 2500ms old.
 pub(crate) fn scan() -> Result<Vec<Wifi>> {
     let socket = SocketN::connect();
     if let Ok(mut socket_conn) = socket {
@@ -27,16 +28,23 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
                 let mut filtered_wifis: Vec<Wifi> = Vec::new();
                 let mut all_wifis: Vec<Wifi> = Vec::new();
 
-                for interface in interfaces {
-                    if let Some(index) = interface.index {
-                        // trigger scan on interface
-                        let scan_result = std::panic::catch_unwind(|| trigger_scan(index));
+                let scan_result = std::panic::catch_unwind(|| trigger_scan());
 
-                        // only sleep if trigger_scan succeeded
-                        if let Ok(Ok(_)) = scan_result {
-                            sleep(Duration::from_millis(1500));
+                // sleep if at least one scan succeeded
+                match scan_result {
+                    Ok(inner) => match inner {
+                        Ok(_) => sleep(Duration::from_millis(1500)),
+                        Err(e) => {
+                            if e.to_string().contains("Operation not permitted") {
+                                return Err(Error::ScanFailed("Operation not permitted. Try running as root.".to_string()));
+                            }
                         }
+                    }
+                    Err(_) => println!("WARNING: Code to trigger WiFi scan panicked")
+                }
 
+                for interface in &interfaces {
+                    if let Some(index) = interface.index {
                         let mut results: Vec<Wifi> = Vec::new();
                         let bss_list = socket_conn.get_bss_info(index);
                         if let Ok(bss_list) = bss_list {
@@ -92,7 +100,8 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
     }
 }
 
-fn trigger_scan(ifindex: i32) -> Result<()> {
+/// return Ok() if at least one scan succeeded
+fn trigger_scan() -> Result<()> {
     let mut control_socket = match Socket::new(Protocol::Generic) {
         Ok(sock) => sock,
         Err(e) => return Err(Error::SocketError(e.to_string())),
@@ -108,20 +117,28 @@ fn trigger_scan(ifindex: i32) -> Result<()> {
         Err(e) => return Err(Error::SocketError(e.to_string())),
     };
 
-    let device = devices
-        .into_iter()
-        .find(|dev| dev.interface_index == ifindex as u32)
-        .ok_or_else(|| Error::InterfaceError(format!("Interface {} not found", ifindex)))?;
-
-    match device.trigger_scan(&mut control_socket) {
-        Ok(_) => Ok(()),
-        Err(e) => {
-            eprintln!(
-                "WARNING: Failed to trigger scan on interface: {}",
-                device.interface_name
-            );
-            Err(Error::SocketError(format!("Failed to trigger scan: {}", e)))
+    let mut failed_count = 0;
+    let mut one_succeeded = false;
+    for dev in devices {
+        match dev.trigger_scan(&mut control_socket) {
+            Ok(_) => {
+                one_succeeded = true;
+                println!("Triggered scan on: {}", dev.interface_name)
+            },
+            Err(e) => {
+                println!("WARNING: Failed to trigger scan on {}: {}", dev.interface_name, e);
+                failed_count += 1;
+                if e.to_string().contains("not permitted") {
+                    return Err(Error::ScanFailed("Operation not permitted. Try running as root.".to_string()));
+                }
+            }
         }
+    }
+
+    if one_succeeded {
+        Ok(())
+    } else {
+        Err(Error::ScanFailed(format!("Triggering a network scan failed on {} devices.", failed_count)))
     }
 }
 
