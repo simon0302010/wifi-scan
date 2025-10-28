@@ -13,7 +13,7 @@ use nl80211_rs::{
 /// Open networks are recognised as having WPA2-PSK on Linux.
 /// Uses `nl80211-rs` and `netlink-rust` crates on Linux.
 /// On Linux, very frequent scan may produce unexpected results on some machines,
-/// scanning requires root privileges and data can be up to 2500ms old.
+/// scanning requires root privileges and results can be up to 2500ms old.
 pub(crate) fn scan() -> Result<Vec<Wifi>> {
     let socket = SocketN::connect();
     if let Ok(mut socket_conn) = socket {
@@ -28,7 +28,7 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
                 let mut filtered_wifis: Vec<Wifi> = Vec::new();
                 let mut all_wifis: Vec<Wifi> = Vec::new();
 
-                let scan_result = std::panic::catch_unwind(|| trigger_scan());
+                let scan_result = std::panic::catch_unwind(trigger_scan);
 
                 // sleep if at least one scan succeeded
                 match scan_result {
@@ -36,11 +36,13 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
                         Ok(_) => sleep(Duration::from_millis(1500)),
                         Err(e) => {
                             if e.to_string().contains("Operation not permitted") {
-                                return Err(Error::ScanFailed("Operation not permitted. Try running as root.".to_string()));
+                                return Err(Error::ScanFailed(
+                                    "Operation not permitted. Try running as root.".to_string(),
+                                ));
                             }
                         }
-                    }
-                    Err(_) => println!("WARNING: Code to trigger WiFi scan panicked")
+                    },
+                    Err(_) => println!("WARNING: Code to trigger WiFi scan panicked"),
                 }
 
                 for interface in &interfaces {
@@ -124,12 +126,17 @@ fn trigger_scan() -> Result<()> {
             Ok(_) => {
                 one_succeeded = true;
                 println!("Triggered scan on: {}", dev.interface_name)
-            },
+            }
             Err(e) => {
-                println!("WARNING: Failed to trigger scan on {}: {}", dev.interface_name, e);
+                println!(
+                    "WARNING: Failed to trigger scan on {}: {}",
+                    dev.interface_name, e
+                );
                 failed_count += 1;
                 if e.to_string().contains("not permitted") {
-                    return Err(Error::ScanFailed("Operation not permitted. Try running as root.".to_string()));
+                    return Err(Error::ScanFailed(
+                        "Operation not permitted. Try running as root.".to_string(),
+                    ));
                 }
             }
         }
@@ -138,7 +145,10 @@ fn trigger_scan() -> Result<()> {
     if one_succeeded {
         Ok(())
     } else {
-        Err(Error::ScanFailed(format!("Triggering a network scan failed on {} devices.", failed_count)))
+        Err(Error::ScanFailed(format!(
+            "Triggering a network scan failed on {} devices.",
+            failed_count
+        )))
     }
 }
 

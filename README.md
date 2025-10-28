@@ -9,8 +9,6 @@
 
 This is a fork of [wifiscanner](https://github.com/booyaa/wifiscanner), a crate to list WiFi hotspots in your area.
 
-Note: Only macOS versions up to Ventura (13) are supported.
-
 Tests taken from Christian Kuster's [node-wifi-scanner](https://github.com/ancasicolica/node-wifi-scanner)
 
 Full documentation can be found [here](https://docs.rs/wifi_scan).
@@ -31,6 +29,8 @@ and this to your crate root:
 extern crate wifi_scan;
 ```
 
+> Note: Only macOS versions up to Ventura (13) are supported.
+
 ## Example
 
 ```rust
@@ -43,6 +43,7 @@ using: `cargo run --example scan`.
 
 ## Changelog
 
+- 0.6.1 - support for multiple wifi adapters on linux
 - 0.6.0 - remove `iw` dependency for linux
 - 0.5.1 - crates.io metadata update
 - 0.5.0 - add window support (props to  @brianjaustin)
@@ -57,9 +58,9 @@ see [CONTRIBUTING.md](/CONTRIBUTING.md)
 
 ## Contributors
 
-wifi_scan would not be possible without the following folks:
+wifi_scan would not be possible without the following people:
 
-@alopatindev, @bizzu, @bash, @cristicbz, @lpmi-13, @brianjaustin
+@alopatindev, @bizzu, @bash, @cristicbz, @lpmi-13, @brianjaustin, @booyaa
 
 ## Copyright
 

@@ -64,7 +64,7 @@ pub enum Error {
     InterfaceError(String),
     SocketError(String),
     UnknownError,
-    ScanFailed(String)
+    ScanFailed(String),
 }
 
 /// Wifi struct used to return information about wifi hotspots
