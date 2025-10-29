@@ -14,5 +14,4 @@ lint:
 
 checks: check format test lint
 	@git status
-	@echo looks good enough to raise a PR 👍
-	@echo awesome work! 😍
+	@echo All checks passed!

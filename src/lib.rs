@@ -8,7 +8,7 @@
 
 //! A crate to list WiFi hotspots in your area.
 //!
-//! As of v0.5.x now supports macOS, Linux and Windows. :tada:
+//! As of v0.5.x macOS, Windows and Linux are supported.
 //! Note: Only macOS versions up to Ventura (13) are supported.
 //!
 //! # Usage
@@ -18,13 +18,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! wifi_scan = "0.5.*"
-//! ```
-//!
-//! and this to your crate root:
-//!
-//! ```rust
-//! extern crate wifi_scan;
+//! wifi_scan = "0.6.*"
 //! ```
 //!
 //! # Example
@@ -36,13 +30,6 @@
 //!
 //! Alternatively if you've cloned the the Git repo, you can run the above example
 //! using: `cargo run --example scan`.
-
-//TODO need to find a way to move these out of lib and into sys or better still windows module
-#[cfg(target_os = "windows")]
-#[macro_use]
-extern crate itertools;
-#[cfg(target_os = "windows")]
-extern crate regex;
 
 mod sys;
 
@@ -67,7 +54,7 @@ pub enum Error {
     ScanFailed(String),
 }
 
-/// Wifi struct used to return information about wifi hotspots
+/// Wifi struct used to return information about wifi hotspots. Shows security on Linux since version 0.6.0.
 #[derive(Debug, PartialEq, Eq, Default, Clone)]
 pub struct Wifi {
     /// mac address
@@ -115,7 +102,8 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {}
 
 /// Returns a list of WiFi hotspots in your area.
-/// Uses `airport` on macOS and `netsh` on Windows.
+/// Uses `airport` on macOS, `netsh` on Windows.
+/// `nl80211-rs` and `netlink-rust` crates are being used on machines running Linux.
 ///
 /// Example:
 ///

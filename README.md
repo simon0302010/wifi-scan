@@ -23,12 +23,6 @@ used by adding `wifi_scan` to the dependencies in your project's `Cargo.toml`.
 wifi_scan = "0.6.*"
 ```
 
-and this to your crate root:
-
-```rust
-extern crate wifi_scan;
-```
-
 > Note: Only macOS versions up to Ventura (13) are supported.
 
 ## Example
@@ -64,7 +58,7 @@ wifi_scan would not be possible without the following people:
 
 ## Copyright
 
-Copyright 2019 Mark Sta Ana.  
+Copyright 2019 Mark Sta Ana.
 Forked and maintained by simon0302010.
 
 Copyright 2025 simon0302010.
