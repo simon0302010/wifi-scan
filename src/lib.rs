@@ -23,7 +23,7 @@
 //!
 //! # Example
 //!
-//! ```
+//! ```no_run
 //! use wifi_scan;
 //! println!("{:?}", wifi_scan::scan());
 //! ```
@@ -107,7 +107,7 @@ impl std::error::Error for Error {}
 ///
 /// Example:
 ///
-/// ```rust
+/// ```rust,no_run
 /// use wifi_scan;
 /// println!("{:?}", wifi_scan::scan());
 /// ```
