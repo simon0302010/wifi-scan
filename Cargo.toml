@@ -23,3 +23,8 @@ neli-wifi = "0.6.*"
 neli = "0.6.*"
 nl80211-rs = "0.1.1"
 netlink-rust = "0.1.1"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+win32-wlan = "0.1.0"
+futures = "0.3"
+libwifi = "0.4.*"

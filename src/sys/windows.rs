@@ -1,112 +1,129 @@
-use regex::Regex;
-
 use crate::{Error, Result, Wifi};
 
-/// Returns a list of WiFi hotspots in your area - (Windows) uses `netsh`
+use libwifi::{frame::components::RsnAkmSuite, parsers::parse_rsn_information};
+use win32_wlan::query_system_interfaces;
+
+/// Returns a list of WiFi hotspots in your area - Windows uses the `win32-wlan` crate.
 pub fn scan() -> Result<Vec<Wifi>> {
-    use std::process::Command;
-    let output = Command::new("netsh.exe")
-        .args(&["wlan", "show", "networks", "mode=Bssid"])
-        .output()
-        .map_err(|_| Error::CommandNotFound)?;
+    let interfaces = futures::executor::block_on(query_system_interfaces())
+        .map_err(|e| Error::InterfaceError(e.to_string()))?;
 
-    let data = String::from_utf8_lossy(&output.stdout);
+    if let Some(interface) = interfaces.first() {
+        let networks = interface
+            .blocking_scan()
+            .map_err(|e| Error::ScanFailed(e.to_string()))?;
 
-    parse_netsh(&data)
+        let wifi_list = networks
+            .iter()
+            .filter_map(|network| {
+                network.ssid().map(|ssid| Wifi {
+                    mac: network.bss_id().to_string(),
+                    ssid: ssid.to_string(),
+                    channel: get_channel(network.ch_center_frequency() / 1000),
+                    signal_level: format!("{:.2}", network.rssi() as f64),
+                    security: get_security(network.information_frame()),
+                })
+            })
+            .collect();
+
+        Ok(wifi_list)
+    } else {
+        Err(Error::InterfaceError(
+            "No WiFi interfaces found".to_string(),
+        ))
+    }
 }
 
-fn parse_netsh(network_list: &str) -> Result<Vec<Wifi>> {
-    let mut wifis = Vec::new();
+fn get_channel(frequency: u32) -> String {
+    if (2412..=2472).contains(&frequency) {
+        ((frequency - 2407) / 5).to_string()
+    } else if frequency == 2484 {
+        "14".to_string() // japan
+    } else if (5180..=5895).contains(&frequency) {
+        ((frequency - 5000) / 5).to_string()
+    } else if (5955..=7115).contains(&frequency) {
+        ((frequency - 5950) / 5).to_string()
+    } else {
+        "Unknown".to_string()
+    }
+}
 
-    // Regex for matching split, SSID and MAC, since these aren't pulled directly
-    let split_regex = Regex::new("\nSSID").map_err(|_| Error::SyntaxRegexError)?;
-    let ssid_regex = Regex::new("^ [0-9]* : ").map_err(|_| Error::SyntaxRegexError)?;
-    let mac_regex = Regex::new("[a-fA-F0-9:]{17}").map_err(|_| Error::SyntaxRegexError)?;
+fn get_security(ie_data: &[u8]) -> String {
+    let mut has_rsn = false;
+    let mut has_wpa = false;
+    let mut securities = Vec::new();
 
-    for block in split_regex.split(network_list) {
-        let mut wifi_macs = Vec::new();
-        let mut wifi_ssid = String::new();
-        let mut wifi_channels = Vec::new();
-        let mut wifi_rssi = Vec::new();
-        let mut wifi_security = String::new();
+    let mut i = 0;
+    while i + 1 < ie_data.len() {
+        let element_id = ie_data[i];
+        let length = ie_data[i + 1] as usize;
 
-        for line in block.lines() {
-            if ssid_regex.is_match(line) {
-                wifi_ssid = line.split(":").nth(1).unwrap_or("").trim().to_string();
-            } else if line.find("Authentication").is_some() {
-                wifi_security = line.split(":").nth(1).unwrap_or("").trim().to_string();
-            } else if line.find("BSSID").is_some() {
-                let captures = mac_regex.captures(line).ok_or(Error::SyntaxRegexError)?;
-                wifi_macs.push(captures.get(0).ok_or(Error::SyntaxRegexError)?);
-            } else if line.find("Signal").is_some() {
-                let percent = line.split(":").nth(1).unwrap_or("").trim().replace("%", "");
-                let percent: i32 = percent.parse().map_err(|_| Error::SyntaxRegexError)?;
-                wifi_rssi.push(percent / 2 - 100);
-            } else if line.find("Channel").is_some() {
-                wifi_channels.push(line.split(":").nth(1).unwrap_or("").trim().to_string());
-            }
+        if i + 2 + length > ie_data.len() {
+            break;
         }
 
-        for (mac, channel, rssi) in izip!(wifi_macs, wifi_channels, wifi_rssi) {
-            wifis.push(Wifi {
-                mac: mac.as_str().to_string(),
-                ssid: wifi_ssid.to_string(),
-                channel: channel.to_string(),
-                signal_level: rssi.to_string(),
-                security: wifi_security.to_string(),
-            });
+        let element_data = &ie_data[i + 2..i + 2 + length];
+
+        match element_id {
+            48 => {
+                has_rsn = true;
+                if let Ok(rsn) = parse_rsn_information(element_data) {
+                    let sec = format_security(&rsn.akm_suites);
+                    if !sec.is_empty() {
+                        securities.push(sec);
+                    }
+                }
+            }
+            221 => {
+                if length >= 4 {
+                    let oui = &element_data[0..3];
+                    if oui == [0x00, 0x50, 0xF2] && element_data.get(3) == Some(&0x01) {
+                        has_wpa = true;
+                        securities.push("WPA-PSK".to_string());
+                    }
+                }
+            }
+            _ => {}
+        }
+
+        i += 2 + length;
+    }
+
+    if securities.is_empty() {
+        if has_rsn || has_wpa {
+            "WPA/WPA2".to_string()
+        } else {
+            "Open".to_string()
+        }
+    } else {
+        securities.join(", ")
+    }
+}
+
+fn format_security(akm_suites: &[RsnAkmSuite]) -> String {
+    let mut securities = Vec::new();
+
+    for akm_suite in akm_suites {
+        let security = match akm_suite {
+            RsnAkmSuite::PSK => "WPA2-Personal (PSK)",
+            RsnAkmSuite::SAE => "WPA3-Personal (SAE)",
+            RsnAkmSuite::EAP => "WPA2-Enterprise (EAP)",
+            RsnAkmSuite::EAP256 => "WPA3-Enterprise (EAP-256)",
+            RsnAkmSuite::EAPFT => "WPA2-Enterprise (EAP-FT)",
+            RsnAkmSuite::PSK256 => "WPA3-Personal (PSK-256)",
+            RsnAkmSuite::PSKFT => "WPA2-Personal (PSK-FT)",
+            RsnAkmSuite::SUITEBEAP256 => "WPA3-Enterprise (Suite-B EAP-256)",
+            _ => "",
+        };
+
+        if !security.is_empty() {
+            securities.push(security.to_string());
         }
     }
 
-    Ok(wifis)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn should_parse_netsh() {
-        use std::fs;
-
-        // Note: formula for % to dBm is (% / 100) - 100
-        let expected = vec![
-            Wifi {
-                mac: "ab:cd:ef:01:23:45".to_string(),
-                ssid: "Vodafone Hotspot".to_string(),
-                channel: "6".to_string(),
-                signal_level: "-92".to_string(),
-                security: "Open".to_string(),
-            },
-            Wifi {
-                mac: "ab:cd:ef:01:23:45".to_string(),
-                ssid: "Vodafone Hotspot".to_string(),
-                channel: "6".to_string(),
-                signal_level: "-73".to_string(),
-                security: "Open".to_string(),
-            },
-            Wifi {
-                mac: "ab:cd:ef:01:23:45".to_string(),
-                ssid: "EdaBox".to_string(),
-                channel: "11".to_string(),
-                signal_level: "-82".to_string(),
-                security: "WPA2-Personal".to_string(),
-            },
-            Wifi {
-                mac: "ab:cd:ef:01:23:45".to_string(),
-                ssid: "FRITZ!Box 2345 Cable".to_string(),
-                channel: "1".to_string(),
-                signal_level: "-50".to_string(),
-                security: "WPA2-Personal".to_string(),
-            },
-        ];
-
-        // Load test fixtures
-        let fixture = fs::read_to_string("tests/fixtures/netsh/netsh01_windows81.txt").unwrap();
-
-        let result = parse_netsh(&fixture).unwrap();
-        assert_eq!(expected[0], result[0]);
-        assert_eq!(expected[1], result[1]);
-        assert_eq!(expected[2], result[2]);
-        assert_eq!(expected[3], result[3]);
+    if securities.is_empty() {
+        "WPA2".to_string()
+    } else {
+        securities.join(", ")
     }
 }

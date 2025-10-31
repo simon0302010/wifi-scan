@@ -200,21 +200,25 @@ fn get_security(ie_data: Vec<u8>) -> String {
 
                     for akm in sec_ie.akms {
                         let security = match akm {
-                            AuthenticationKeyManagement::PairwiseMasterKeySecurityAssociation => {
-                                "WPA2-Enterprise"
+                            AuthenticationKeyManagement::PreSharedKey => "WPA2-Personal (PSK)",
+                            AuthenticationKeyManagement::SimultaneousAuthenticationOfEquals => {
+                                "WPA3-Personal (SAE)"
                             }
-                            AuthenticationKeyManagement::PreSharedKey => "WPA2-PSK",
+                            AuthenticationKeyManagement::PairwiseMasterKeySecurityAssociation => {
+                                "WPA2-Enterprise (EAP)"
+                            }
+                            AuthenticationKeyManagement::PMKSASha256 => "WPA3-Enterprise (EAP-256)",
                             AuthenticationKeyManagement::FastTransitionPMKSA => {
-                                "WPA2-Enterprise-FT"
+                                "WPA2-Enterprise (EAP-FT)"
+                            }
+                            AuthenticationKeyManagement::PreSharedKeySha256 => {
+                                "WPA3-Personal (PSK-256)"
                             }
                             AuthenticationKeyManagement::FastTransitionPreSharedKey => {
-                                "WPA2-PSK-FT"
+                                "WPA2-Personal (PSK-FT)"
                             }
-                            AuthenticationKeyManagement::FastTransitionSAE => "WPA3-SAE-FT",
-                            AuthenticationKeyManagement::PMKSASha256 => "WPA2-Enterprise-SHA256",
-                            AuthenticationKeyManagement::PreSharedKeySha256 => "WPA2-PSK-SHA256",
-                            AuthenticationKeyManagement::SimultaneousAuthenticationOfEquals => {
-                                "WPA3-SAE"
+                            AuthenticationKeyManagement::FastTransitionSAE => {
+                                "WPA3-Personal (SAE-FT)"
                             }
                             AuthenticationKeyManagement::TunneledDirectLinkSetup => "TDLS",
                             _ => "",
