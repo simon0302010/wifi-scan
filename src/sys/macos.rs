@@ -14,7 +14,9 @@ pub fn scan() -> Result<Vec<Wifi>> {
         };
 
         let manager = CLLocationManager::new();
-        manager.requestLocation();
+        let delegate = LocationDelegate::new();
+        manager.setDelegate(Some(&delegate));
+        manager.requestWhenInUseAuthorization();
 
         let mut results: Vec<Wifi> = Vec::new();
 
