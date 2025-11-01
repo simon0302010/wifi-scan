@@ -1,6 +1,6 @@
 [package]
 name = "wifi_scan"
-version = "0.6.2"
+version = "0.6.3"
 authors = ["simon0302010 <simon@hackclub.app>"]
 description = "A crate to list WiFi hotspots in your area. Fork of booyaa/wifiscanner with many improvements to make it future-proof."
 repository = "https://github.com/simon0302010/wifi-scan"
