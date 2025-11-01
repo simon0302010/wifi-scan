@@ -1,14 +1,11 @@
-use objc2_core_location::CLLocationManager;
 use objc2_core_wlan::{CWNetwork, CWSecurity, CWWiFiClient};
 
 use crate::{Error, Result, Wifi};
 
 /// Returns a list of WiFi hotspots in your area - macOS uses `objc2-core-wlan`.
+/// Location Access must be granted to the program for it to display SSIDs and BSSIDs.
 pub fn scan() -> Result<Vec<Wifi>> {
     unsafe {
-        let manager = CLLocationManager::new();
-        manager.requestWhenInUseAuthorization();
-
         let client = CWWiFiClient::sharedWiFiClient();
         let interface = client.interface();
         let scanned = match interface {
