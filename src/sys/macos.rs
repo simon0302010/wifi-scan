@@ -1,65 +1,75 @@
-use corewlan_sys::{self, CWNetwork, CWSecurity, CWWiFiClient};
+use objc2_core_wlan::{CWNetwork, CWSecurity, CWWiFiClient};
 
 use crate::{Error, Result, Wifi};
 
 /// Returns a list of WiFi hotspots in your area - macOS uses `corewlan-sys`.
 pub fn scan() -> Result<Vec<Wifi>> {
-    let client = CWWiFiClient::sharedWiFiClient();
-    let interface = client.interface();
-    let scanned = interface.scanForNetworksWithName(None);
+    unsafe {
+        let client = CWWiFiClient::sharedWiFiClient();
+        let interface = client.interface();
+        let scanned = match interface {
+            Some(ref iface) => iface.scanForNetworksWithName_error(None),
+            None => return Err(Error::ScanFailed("No WiFi interface found.".to_string())),
+        };
 
-    let mut results: Vec<Wifi> = Vec::new();
+        let mut results: Vec<Wifi> = Vec::new();
 
-    match scanned {
-        Ok(networks) => {
-            for network in networks {
-                results.push(Wifi {
-                    mac: match network.bssid() {
-                        Some(bssid) => bssid,
-                        None => String::new(),
-                    },
-                    ssid: network.ssid(),
-                    channel: network.wlanChannel().number.to_string(),
-                    signal_level: network.rssiValue().to_string(),
-                    security: get_security(network),
-                });
+        match scanned {
+            Ok(networks) => {
+                let networks_array = networks.allObjects();
+                for network in networks_array.iter() {
+                    results.push(Wifi {
+                        mac: match network.bssid() {
+                            Some(bssid) => bssid.to_string(),
+                            None => String::new(),
+                        },
+                        ssid: network.ssid().map_or(String::new(), |s| s.to_string()),
+                        channel: network
+                            .wlanChannel()
+                            .map_or(String::new(), |c| c.channelNumber().to_string()),
+                        signal_level: network.rssiValue().to_string(),
+                        security: get_security(&*network),
+                    });
+                }
+                Ok(results)
             }
-            Ok(results)
+            Err(_) => Err(Error::ScanFailed("Scan failed.".to_string())),
         }
-        Err(_) => Err(Error::ScanFailed("Scan failed.".to_string())),
     }
 }
 
-fn get_security(network: CWNetwork) -> String {
-    let securities_dict = vec![
-        (CWSecurity::None, "Open"),
-        (CWSecurity::DynamicWEP, "Dynamic-WEP"),
-        (CWSecurity::Enterprise, "Enterprise"),
-        (CWSecurity::Personal, "Personal"),
-        (CWSecurity::Unknown, "Unknown"),
-        (CWSecurity::WEP, "WEP"),
-        (CWSecurity::WPA2Enterprise, "WPA2-Enterprise"),
-        (CWSecurity::WPA2Personal, "WPA2-Personal"),
-        (CWSecurity::WPA3Enterprise, "WPA3-Enterprise"),
-        (CWSecurity::WPA3Personal, "WPA3-Personal"),
-        (CWSecurity::WPA3Transition, "WPA3-Transition"),
-        (CWSecurity::WPAEnterprise, "WPA-Enterprise"),
-        (CWSecurity::WPAEnterpriseMixed, "WPA-Enterprise-Mixed"),
-        (CWSecurity::WPAPersonal, "WPA-Personal"),
-        (CWSecurity::WPAPersonalMixed, "WPA-Personal-Mixed"),
-    ];
+fn get_security(network: &CWNetwork) -> String {
+    unsafe {
+        let securities_dict = vec![
+            (CWSecurity::None, "Open"),
+            (CWSecurity::DynamicWEP, "Dynamic-WEP"),
+            (CWSecurity::Enterprise, "Enterprise"),
+            (CWSecurity::Personal, "Personal"),
+            (CWSecurity::Unknown, "Unknown"),
+            (CWSecurity::WEP, "WEP"),
+            (CWSecurity::WPA2Enterprise, "WPA2-Enterprise"),
+            (CWSecurity::WPA2Personal, "WPA2-Personal"),
+            (CWSecurity::WPA3Enterprise, "WPA3-Enterprise"),
+            (CWSecurity::WPA3Personal, "WPA3-Personal"),
+            (CWSecurity::WPA3Transition, "WPA3-Transition"),
+            (CWSecurity::WPAEnterprise, "WPA-Enterprise"),
+            (CWSecurity::WPAEnterpriseMixed, "WPA-Enterprise-Mixed"),
+            (CWSecurity::WPAPersonal, "WPA-Personal"),
+            (CWSecurity::WPAPersonalMixed, "WPA-Personal-Mixed"),
+        ];
 
-    let mut securities: Vec<String> = Vec::new();
+        let mut securities: Vec<String> = Vec::new();
 
-    for (security, security_str) in &securities_dict {
-        if network.supportsSecurity(security.clone()) {
-            securities.push(security_str.to_string());
+        for (security, security_str) in &securities_dict {
+            if network.supportsSecurity(security.clone()) {
+                securities.push(security_str.to_string());
+            }
         }
-    }
 
-    if securities.is_empty() {
-        securities.push("Unknown".to_string());
-    }
+        if securities.is_empty() {
+            securities.push("Unknown".to_string());
+        }
 
-    securities.join(", ")
+        securities.join(", ")
+    }
 }
