@@ -1,3 +1,4 @@
+use objc2_core_location::CLLocationManager;
 use objc2_core_wlan::{CWNetwork, CWSecurity, CWWiFiClient};
 
 use crate::{Error, Result, Wifi};
@@ -11,6 +12,9 @@ pub fn scan() -> Result<Vec<Wifi>> {
             Some(ref iface) => iface.scanForNetworksWithName_error(None),
             None => return Err(Error::ScanFailed("No WiFi interface found.".to_string())),
         };
+
+        let manager = CLLocationManager::new();
+        manager.requestLocation();
 
         let mut results: Vec<Wifi> = Vec::new();
 
@@ -27,7 +31,7 @@ pub fn scan() -> Result<Vec<Wifi>> {
                         channel: network
                             .wlanChannel()
                             .map_or(String::new(), |c| c.channelNumber().to_string()),
-                        signal_level: network.rssiValue().to_string(),
+                        signal_level: format!("{:.2}", network.rssiValue()),
                         security: get_security(&*network),
                     });
                 }
