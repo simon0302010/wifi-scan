@@ -37,7 +37,7 @@ using: `cargo run --example scan`.
 
 ## Changelog
 
-- 0.6.2 - removed `netsh` dependency for windows which now enables the libary to work on every windows installation
+- 0.6.2 - stop relying on `netsh` utility on windows
 - 0.6.1 - support for multiple wifi adapters on linux
 - 0.6.0 - remove `iw` dependency for linux
 - 0.5.1 - crates.io metadata update
