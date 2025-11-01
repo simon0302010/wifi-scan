@@ -1,25 +1,20 @@
-use objc2::declare_class;
-use objc2::runtime::{Class, Object, Sel};
-use objc2_core_location::{CLAuthorizationStatus, CLLocationManager, CLLocationManagerDelegate};
+use objc2_core_location::CLLocationManager;
 use objc2_core_wlan::{CWNetwork, CWSecurity, CWWiFiClient};
-use objc2_foundation::{MainThreadBound, NSObject};
 
 use crate::{Error, Result, Wifi};
 
 /// Returns a list of WiFi hotspots in your area - macOS uses `objc2-core-wlan`.
 pub fn scan() -> Result<Vec<Wifi>> {
     unsafe {
+        let manager = CLLocationManager::new();
+        manager.requestWhenInUseAuthorization();
+
         let client = CWWiFiClient::sharedWiFiClient();
         let interface = client.interface();
         let scanned = match interface {
             Some(ref iface) => iface.scanForNetworksWithName_error(None),
             None => return Err(Error::ScanFailed("No WiFi interface found.".to_string())),
         };
-
-        let manager = CLLocationManager::new();
-        let delegate = LocationDelegate::new();
-        manager.setDelegate(Some(&delegate));
-        manager.requestWhenInUseAuthorization();
 
         let mut results: Vec<Wifi> = Vec::new();
 
@@ -82,24 +77,3 @@ fn get_security(network: &CWNetwork) -> String {
         securities.join(", ")
     }
 }
-
-declare_class!(
-    struct LocationDelegate;
-
-    unsafe impl ClassType for LocationDelegate {
-        type Super = NSObject;
-        type Mutability = InteriorMutable;
-        const NAME: &'static str = "LocationDelegate";
-    }
-
-    unsafe impl CLLocationManagerDelegate for LocationDelegate {
-        #[method(locationManagerDidChangeAuthorization:)]
-        fn location_manager_did_change_authorization(
-            &self,
-            _manager: &CLLocationManager,
-            status: CLAuthorizationStatus,
-        ) {
-            println!("Location status changed: {}.", status);
-        }
-    }
-);
