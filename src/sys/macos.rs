@@ -1,116 +1,65 @@
+use corewlan_sys::{self, CWNetwork, CWSecurity, CWWiFiClient};
+
 use crate::{Error, Result, Wifi};
 
-/// Returns a list of WiFi hotspots in your area - (OSX/MacOS) uses `airport`
-pub(crate) fn scan() -> Result<Vec<Wifi>> {
-    use std::process::Command;
-    let output = Command::new(
-        "/System/Library/PrivateFrameworks/Apple80211.\
-         framework/Versions/Current/Resources/airport",
-    )
-    .arg("-s")
-    .output()
-    .map_err(|_| Error::CommandNotFound)?;
+/// Returns a list of WiFi hotspots in your area - macOS uses `corewlan-sys`.
+pub fn scan() -> Result<Vec<Wifi>> {
+    let client = CWWiFiClient::sharedWiFiClient();
+    let interface = client.interface();
+    let scanned = interface.scanForNetworksWithName(None);
 
-    let data = String::from_utf8_lossy(&output.stdout);
+    let mut results: Vec<Wifi> = Vec::new();
 
-    parse_airport(&data)
+    match scanned {
+        Ok(networks) => {
+            for network in networks {
+                results.push(Wifi {
+                    mac: match network.bssid() {
+                        Some(bssid) => bssid,
+                        None => String::new(),
+                    },
+                    ssid: network.ssid(),
+                    channel: network.wlanChannel().number.to_string(),
+                    signal_level: network.rssiValue().to_string(),
+                    security: get_security(network),
+                });
+            }
+            Ok(results)
+        }
+        Err(_) => Err(Error::ScanFailed("Scan failed.".to_string())),
+    }
 }
 
-fn parse_airport(network_list: &str) -> Result<Vec<Wifi>> {
-    let mut wifis: Vec<Wifi> = Vec::new();
-    let mut lines = network_list.lines();
-    let headers = match lines.next() {
-        Some(v) => v,
-        // return an empty list of WiFi if the network_list is empty
-        None => return Ok(vec![]),
-    };
+fn get_security(network: CWNetwork) -> String {
+    let securities_dict = vec![
+        (CWSecurity::None, "Open"),
+        (CWSecurity::DynamicWEP, "Dynamic-WEP"),
+        (CWSecurity::Enterprise, "Enterprise"),
+        (CWSecurity::Personal, "Personal"),
+        (CWSecurity::Unknown, "Unknown"),
+        (CWSecurity::WEP, "WEP"),
+        (CWSecurity::WPA2Enterprise, "WPA2-Enterprise"),
+        (CWSecurity::WPA2Personal, "WPA2-Personal"),
+        (CWSecurity::WPA3Enterprise, "WPA3-Enterprise"),
+        (CWSecurity::WPA3Personal, "WPA3-Personal"),
+        (CWSecurity::WPA3Transition, "WPA3-Transition"),
+        (CWSecurity::WPAEnterprise, "WPA-Enterprise"),
+        (CWSecurity::WPAEnterpriseMixed, "WPA-Enterprise-Mixed"),
+        (CWSecurity::WPAPersonal, "WPA-Personal"),
+        (CWSecurity::WPAPersonalMixed, "WPA-Personal-Mixed"),
+    ];
 
-    let headers_string = String::from(headers);
-    let col_headers = ["BSSID", "RSSI", "CHANNEL", "HT", "SECURITY"]
-        .iter()
-        .map(|header| {
-            headers_string
-                .find(header)
-                .ok_or(Error::HeaderNotFound(header))
-        })
-        .collect::<Result<Vec<_>>>()?;
-    let col_mac = col_headers[0];
-    let col_rrsi = col_headers[1];
-    let col_channel = col_headers[2];
-    let col_ht = col_headers[3];
-    let col_security = col_headers[4];
+    let mut securities: Vec<String> = Vec::new();
 
-    for line in lines {
-        let ssid = &line[..col_mac].trim();
-        let mac = &line[col_mac..col_rrsi].trim();
-        let signal_level = &line[col_rrsi..col_channel].trim();
-        let channel = &line[col_channel..col_ht].trim();
-        let security = &line[col_security..].trim();
-
-        wifis.push(Wifi {
-            mac: mac.to_string(),
-            ssid: ssid.to_string(),
-            channel: channel.to_string(),
-            signal_level: signal_level.to_string(),
-            security: security.to_string(),
-        });
+    for (security, security_str) in &securities_dict {
+        if network.supportsSecurity(security.clone()) {
+            securities.push(security_str.to_string());
+        }
     }
 
-    Ok(wifis)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::fs::File;
-    use std::io::Read;
-    use std::path::PathBuf;
-
-    #[test]
-    fn should_parse_airport() {
-        let mut expected: Vec<Wifi> = Vec::new();
-        expected.push(Wifi {
-            mac: "00:35:1a:90:56:03".to_string(),
-            ssid: "OurTest".to_string(),
-            channel: "112".to_string(),
-            signal_level: "-70".to_string(),
-            security: "WPA2(PSK/AES/AES)".to_string(),
-        });
-
-        expected.push(Wifi {
-            mac: "00:35:1a:90:56:00".to_string(),
-            ssid: "TEST-Wifi".to_string(),
-            channel: "1".to_string(),
-            signal_level: "-67".to_string(),
-            security: "WPA2(PSK/AES/AES)".to_string(),
-        });
-
-        let path = PathBuf::from("tests/fixtures/airport/airport01.txt");
-
-        let file_path = path.as_os_str();
-
-        let mut file = File::open(&file_path).unwrap();
-
-        let mut filestr = String::new();
-        let _ = file.read_to_string(&mut filestr).unwrap();
-
-        let result = parse_airport(&filestr).unwrap();
-        let last = result.len() - 1;
-        assert_eq!(expected[0], result[0]);
-        assert_eq!(expected[1], result[last]);
+    if securities.is_empty() {
+        securities.push("Unknown".to_string());
     }
 
-    #[test]
-    fn should_not_parse_other() {
-        let path = PathBuf::from("tests/fixtures/iw/iw_dev_01.txt");
-        let file_path = path.as_os_str();
-        let mut file = File::open(&file_path).unwrap();
-        let mut filestr = String::new();
-        file.read_to_string(&mut filestr).unwrap();
-
-        assert_eq!(
-            parse_airport(&filestr).err().unwrap(),
-            Error::HeaderNotFound("BSSID")
-        );
-    }
+    securities.join(", ")
 }
