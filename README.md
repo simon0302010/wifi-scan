@@ -15,6 +15,8 @@ Tests taken from Christian Kuster's [node-wifi-scanner](https://github.com/ancas
 
 Full documentation can be found [here](https://docs.rs/wifi_scan).
 
+This project is made for the [Midnight Hackathon](https://midnight.hackclub.com/) from Hack Club.
+
 ## Usage
 
 This crate is [on crates.io](https://crates.io/crates/wifi_scan) and can be
