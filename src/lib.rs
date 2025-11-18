@@ -53,8 +53,8 @@ pub struct Wifi {
     pub ssid: String,
     /// Channel the hotspot is on. Returns 0 if unknown.
     pub channel: u32,
-    /// Wifi signal strength in dBm
-    pub signal_level: String,
+    /// Wifi signal strength in dBm. Returns 0 if unknown.
+    pub signal_level: i32,
     /// Wifi security (e.g. WPA2-PSK)
     pub security: String,
 }

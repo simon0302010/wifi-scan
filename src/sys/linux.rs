@@ -69,10 +69,8 @@ pub(crate) fn scan() -> Result<Vec<Wifi>> {
                                     None => 0,
                                 },
                                 signal_level: match bss.signal {
-                                    Some(signal) => {
-                                        format!("{:.2}", signal as f32 / 100.0)
-                                    }
-                                    None => String::new(),
+                                    Some(signal) => signal / 100,
+                                    None => 0,
                                 },
                                 security: match bss.information_elements.clone() {
                                     Some(ie_data) => get_security(ie_data),

@@ -20,7 +20,7 @@ pub fn scan() -> Result<Vec<Wifi>> {
                     mac: network.bss_id().to_string(),
                     ssid: ssid.to_string(),
                     channel: get_channel(network.ch_center_frequency() / 1000),
-                    signal_level: format!("{:.2}", network.rssi() as f64),
+                    signal_level: network.rssi(),
                     security: get_security(network.information_frame()),
                 })
             })

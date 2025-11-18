@@ -33,7 +33,7 @@ pub fn scan() -> Result<Vec<Wifi>> {
                                 0u32
                             }
                         }),
-                        signal_level: format!("{:.2}", network.rssiValue()),
+                        signal_level: network.rssiValue(),
                         security: get_security(&*network),
                     });
                 }
