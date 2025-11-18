@@ -65,10 +65,10 @@ impl fmt::Display for Error {
             Error::SocketError(detail) => {
                 write!(f, "Error while creating socket: {}", detail)
             }
-            Error::InterfaceError(detail) => { // a
+            Error::InterfaceError(detail) => {
                 write!(f, "Interface error: {}", detail)
             }
-            Error::ScanFailed(detail) => { // a
+            Error::ScanFailed(detail) => {
                 write!(f, "Scan Failed: {}", detail)
             }
         }
