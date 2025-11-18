@@ -34,17 +34,17 @@ pub fn scan() -> Result<Vec<Wifi>> {
     }
 }
 
-fn get_channel(frequency: u32) -> String {
+fn get_channel(frequency: u32) -> u32 {
     if (2412..=2472).contains(&frequency) {
-        ((frequency - 2407) / 5).to_string()
+        (frequency - 2407) / 5
     } else if frequency == 2484 {
-        "14".to_string() // japan
+        14 // japan
     } else if (5180..=5895).contains(&frequency) {
-        ((frequency - 5000) / 5).to_string()
+        (frequency - 5000) / 5
     } else if (5955..=7115).contains(&frequency) {
-        ((frequency - 5950) / 5).to_string()
+        (frequency - 5950) / 5
     } else {
-        "Unknown".to_string()
+        0
     }
 }
 

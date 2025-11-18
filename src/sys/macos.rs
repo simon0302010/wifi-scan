@@ -27,7 +27,7 @@ pub fn scan() -> Result<Vec<Wifi>> {
                         ssid: network.ssid().map_or(String::new(), |s| s.to_string()),
                         channel: network
                             .wlanChannel()
-                            .map_or(String::new(), |c| c.channelNumber().to_string()),
+                            .map_or(String::new(), |c| c.channelNumber()),
                         signal_level: format!("{:.2}", network.rssiValue()),
                         security: get_security(&*network),
                     });

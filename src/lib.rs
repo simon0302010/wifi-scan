@@ -47,15 +47,15 @@ pub enum Error {
 /// Wifi struct used to return information about wifi hotspots. Shows security on Linux since version 0.6.0.
 #[derive(Debug, PartialEq, Eq, Default, Clone)]
 pub struct Wifi {
-    /// mac address
+    /// MAC Address. May be empty on macOS.
     pub mac: String,
-    /// hotspot name
+    /// Hotspot Name. May be empty on macOS.
     pub ssid: String,
-    /// channel the hotspot is on
-    pub channel: String,
-    /// wifi signal strength in dBm
+    /// Channel the hotspot is on. Returns 0 if unknown.
+    pub channel: u32,
+    /// Wifi signal strength in dBm
     pub signal_level: String,
-    /// wifi security (e.g. WPA2-PSK)
+    /// Wifi security (e.g. WPA2-PSK)
     pub security: String,
 }
 
