@@ -1,4 +1,4 @@
-// Copyright 2016 Mark Sta Ana.
+// Copyright 2016 Mark Sta Ana, 2025 simon0302010.
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0>, at your option.
 // This file may not be copied, modified, or distributed except
@@ -9,7 +9,6 @@
 //! A crate to list WiFi hotspots in your area.
 //!
 //! As of v0.5.x macOS, Windows and Linux are supported.
-//! Note: Only macOS versions up to Ventura (13) are supported.
 //!
 //! # Usage
 //!
@@ -102,7 +101,7 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {}
 
 /// Returns a list of WiFi hotspots in your area.
-/// Uses `airport` on macOS, `netsh` on Windows.
+/// Uses `corewlan` on macOS and `win32-wlan` on Windows.
 /// `nl80211-rs` and `netlink-rust` crates are being used on machines running Linux.
 ///
 /// Example:
