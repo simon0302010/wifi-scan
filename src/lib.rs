@@ -33,23 +33,14 @@
 mod sys;
 
 use std::fmt;
-use std::process::ExitStatus;
 
 type Result<T> = std::result::Result<T, Error>;
 
-#[allow(missing_docs)]
+/// Erros for wifi_scan
 #[derive(Debug, PartialEq, Eq)]
 pub enum Error {
-    SyntaxRegexError,
-    CommandNotFound,
-    CommandFailed(ExitStatus, String),
-    NoMatch,
-    FailedToParse,
-    NoValue,
-    HeaderNotFound(&'static str),
     InterfaceError(String),
     SocketError(String),
-    UnknownError,
     ScanFailed(String),
 }
 
@@ -71,27 +62,13 @@ pub struct Wifi {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Error::SyntaxRegexError => write!(f, "An error occured during syntax check"),
-            Error::CommandNotFound => write!(f, "Couldn't find command"),
-            Error::CommandFailed(status, reason) => {
-                write!(f, "Command failed with exit status {}: {}", status, reason)
-            }
-            Error::NoMatch => write!(f, "Couldn't match"),
-            Error::FailedToParse => write!(f, "Failed to parse command"),
-            Error::NoValue => write!(f, "Value expected but is not present"),
-            Error::HeaderNotFound(header) => {
-                write!(f, "Did not find header {} but expected it", header)
-            }
             Error::SocketError(detail) => {
                 write!(f, "Error while creating socket: {}", detail)
             }
-            Error::InterfaceError(detail) => {
+            Error::InterfaceError(detail) => { // a
                 write!(f, "Interface error: {}", detail)
             }
-            Error::UnknownError => {
-                write!(f, "Unknown error occured")
-            }
-            Error::ScanFailed(detail) => {
+            Error::ScanFailed(detail) => { // a
                 write!(f, "Scan Failed: {}", detail)
             }
         }

@@ -15,94 +15,88 @@ use nl80211_rs::{
 /// On Linux, very frequent scan may produce unexpected results on some machines,
 /// scanning requires root privileges and results can be up to 2500ms old.
 pub(crate) fn scan() -> Result<Vec<Wifi>> {
-    let socket = SocketN::connect();
-    if let Ok(mut socket_conn) = socket {
-        match socket_conn.get_interfaces_info() {
-            Ok(interfaces) => {
-                if interfaces.is_empty() {
-                    return Err(Error::InterfaceError(
-                        "No WiFi adapters detected".to_string(),
+    let mut socket_conn = SocketN::connect().map_err(|e| Error::SocketError(e.to_string()))?;
+
+    let interfaces = socket_conn
+        .get_interfaces_info()
+        .map_err(|e| Error::InterfaceError(e.to_string()))?;
+
+    if interfaces.is_empty() {
+        return Err(Error::InterfaceError(
+            "No WiFi adapters detected".to_string(),
+        ));
+    }
+
+    let mut filtered_wifis: Vec<Wifi> = Vec::new();
+    let mut all_wifis: Vec<Wifi> = Vec::new();
+
+    let scan_result = std::panic::catch_unwind(trigger_scan);
+
+    // sleep if at least one scan succeeded
+    match scan_result {
+        Ok(inner) => match inner {
+            Ok(_) => sleep(Duration::from_millis(1500)),
+            Err(e) => {
+                if e.to_string().contains("Operation not permitted") {
+                    return Err(Error::ScanFailed(
+                        "Operation not permitted. Try running as root.".to_string(),
                     ));
                 }
-
-                let mut filtered_wifis: Vec<Wifi> = Vec::new();
-                let mut all_wifis: Vec<Wifi> = Vec::new();
-
-                let scan_result = std::panic::catch_unwind(trigger_scan);
-
-                // sleep if at least one scan succeeded
-                match scan_result {
-                    Ok(inner) => match inner {
-                        Ok(_) => sleep(Duration::from_millis(1500)),
-                        Err(e) => {
-                            if e.to_string().contains("Operation not permitted") {
-                                return Err(Error::ScanFailed(
-                                    "Operation not permitted. Try running as root.".to_string(),
-                                ));
-                            }
-                        }
-                    },
-                    Err(_) => println!("WARNING: Code to trigger WiFi scan panicked"),
-                }
-
-                for interface in &interfaces {
-                    if let Some(index) = interface.index {
-                        let mut results: Vec<Wifi> = Vec::new();
-                        let bss_list = socket_conn.get_bss_info(index);
-                        if let Ok(bss_list) = bss_list {
-                            for bss in bss_list {
-                                if let Some(seen) = bss.seen_ms_ago {
-                                    if seen <= 2500 {
-                                        results.push(Wifi {
-                                            mac: match bss.bssid {
-                                                Some(bytes) => convert_mac(bytes),
-                                                None => String::new(),
-                                            },
-                                            ssid: match bss.information_elements.clone() {
-                                                Some(ie_data) => get_ssid(ie_data),
-                                                None => String::new(),
-                                            },
-                                            channel: match bss.frequency {
-                                                Some(frequency) => get_channel(frequency),
-                                                None => String::new(),
-                                            },
-                                            signal_level: match bss.signal {
-                                                Some(signal) => {
-                                                    format!("{:.2}", signal as f32 / 100.0)
-                                                }
-                                                None => String::new(),
-                                            },
-                                            security: match bss.information_elements.clone() {
-                                                Some(ie_data) => get_security(ie_data),
-                                                None => String::new(),
-                                            },
-                                        });
-                                    }
-                                }
-                            }
-                        }
-
-                        all_wifis.extend(results);
-                    }
-                }
-                for wifi in all_wifis {
-                    let exists = filtered_wifis.iter().any(|x| x.mac == wifi.mac);
-                    if !exists {
-                        filtered_wifis.push(wifi);
-                    }
-                }
-                Ok(filtered_wifis)
             }
-            Err(e) => Err(Error::InterfaceError(e.to_string())),
-        }
-    } else if let Err(e) = socket {
-        Err(Error::SocketError(e.to_string()))
-    } else {
-        Err(Error::NoValue)
+        },
+        Err(_) => println!("WARNING: Code to trigger WiFi scan panicked"),
     }
+
+    for interface in &interfaces {
+        if let Some(index) = interface.index {
+            let mut results: Vec<Wifi> = Vec::new();
+            let bss_list = socket_conn.get_bss_info(index);
+            if let Ok(bss_list) = bss_list {
+                for bss in bss_list {
+                    if let Some(seen) = bss.seen_ms_ago {
+                        if seen <= 2500 {
+                            results.push(Wifi {
+                                mac: match bss.bssid {
+                                    Some(bytes) => convert_mac(bytes),
+                                    None => String::new(),
+                                },
+                                ssid: match bss.information_elements.clone() {
+                                    Some(ie_data) => get_ssid(ie_data),
+                                    None => String::new(),
+                                },
+                                channel: match bss.frequency {
+                                    Some(frequency) => get_channel(frequency),
+                                    None => String::new(),
+                                },
+                                signal_level: match bss.signal {
+                                    Some(signal) => {
+                                        format!("{:.2}", signal as f32 / 100.0)
+                                    }
+                                    None => String::new(),
+                                },
+                                security: match bss.information_elements.clone() {
+                                    Some(ie_data) => get_security(ie_data),
+                                    None => String::new(),
+                                },
+                            });
+                        }
+                    }
+                }
+            }
+
+            all_wifis.extend(results);
+        }
+    }
+    for wifi in all_wifis {
+        let exists = filtered_wifis.iter().any(|x| x.mac == wifi.mac);
+        if !exists {
+            filtered_wifis.push(wifi);
+        }
+    }
+    Ok(filtered_wifis)
 }
 
-/// return Ok() if at least one scan succeeded
+/// Returns Ok() if at least one scan succeeded
 fn trigger_scan() -> Result<()> {
     let mut control_socket = match Socket::new(Protocol::Generic) {
         Ok(sock) => sock,
