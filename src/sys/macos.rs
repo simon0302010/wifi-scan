@@ -1,45 +1,49 @@
 use objc2_core_wlan::{CWNetwork, CWSecurity, CWWiFiClient};
 
-use crate::{Error, Result, Wifi};
+use crate::{Error, Result, Wifi, WlanScanner};
 
-/// Returns a list of WiFi hotspots in your area - macOS uses `objc2-core-wlan`.
-/// Location Access must be granted to the program for it to display SSIDs and BSSIDs.
-pub fn scan() -> Result<Vec<Wifi>> {
-    unsafe {
-        let client = CWWiFiClient::sharedWiFiClient();
-        let interface = client.interface();
-        let scanned = match interface {
-            Some(ref iface) => iface.scanForNetworksWithName_error(None),
-            None => return Err(Error::ScanFailed("No WiFi interface found.".to_string())),
-        };
+pub struct ScanMac;
 
-        let mut results: Vec<Wifi> = Vec::new();
+impl WlanScanner for ScanMac {
+    /// Returns a list of WiFi hotspots in your area - macOS uses `objc2-core-wlan`.
+    /// Location Access must be granted to the program for it to display SSIDs and BSSIDs.
+    fn scan(&mut self) -> Result<Vec<Wifi>> {
+        unsafe {
+            let client = CWWiFiClient::sharedWiFiClient();
+            let interface = client.interface();
+            let scanned = match interface {
+                Some(ref iface) => iface.scanForNetworksWithName_error(None),
+                None => return Err(Error::ScanFailed("No WiFi interface found.".to_string())),
+            };
 
-        match scanned {
-            Ok(networks) => {
-                let networks_array = networks.allObjects();
-                for network in networks_array.iter() {
-                    results.push(Wifi {
-                        mac: match network.bssid() {
-                            Some(bssid) => bssid.to_string(),
-                            None => String::new(),
-                        },
-                        ssid: network.ssid().map_or(String::new(), |s| s.to_string()),
-                        channel: network.wlanChannel().map_or(0u32, |c| {
-                            let ch = c.channelNumber();
-                            if ch > 0 {
-                                ch as u32
-                            } else {
-                                0u32
-                            }
-                        }),
-                        signal_level: network.rssiValue() as i32,
-                        security: get_security(&*network),
-                    });
+            let mut results: Vec<Wifi> = Vec::new();
+
+            match scanned {
+                Ok(networks) => {
+                    let networks_array = networks.allObjects();
+                    for network in networks_array.iter() {
+                        results.push(Wifi {
+                            mac: match network.bssid() {
+                                Some(bssid) => bssid.to_string(),
+                                None => String::new(),
+                            },
+                            ssid: network.ssid().map_or(String::new(), |s| s.to_string()),
+                            channel: network.wlanChannel().map_or(0u32, |c| {
+                                let ch = c.channelNumber();
+                                if ch > 0 {
+                                    ch as u32
+                                } else {
+                                    0u32
+                                }
+                            }),
+                            signal_level: network.rssiValue() as i32,
+                            security: get_security(&*network),
+                        });
+                    }
+                    Ok(results)
                 }
-                Ok(results)
+                Err(_) => Err(Error::ScanFailed("Scan failed.".to_string())),
             }
-            Err(_) => Err(Error::ScanFailed("Scan failed.".to_string())),
         }
     }
 }

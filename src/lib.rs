@@ -77,6 +77,10 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
+pub trait WlanScanner {
+    fn scan(&mut self) -> Result<Vec<Wifi>>;
+}
+
 /// Returns a list of WiFi hotspots in your area.
 /// Uses `corewlan` on macOS and `win32-wlan` on Windows.
 /// `nl80211-rs` and `netlink-rust` crates are being used on machines running Linux.
@@ -88,5 +92,21 @@ impl std::error::Error for Error {}
 /// println!("{:?}", wifi_scan::scan());
 /// ```
 pub fn scan() -> Result<Vec<Wifi>> {
-    crate::sys::scan()
+    #[cfg(target_os = "macos")]
+    {
+        let mut scanner = sys::macos::ScanMac;
+        scanner.scan()
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let mut scanner = sys::linux::ScanLinux;
+        scanner.scan()
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        let mut scanner = sys::windows::ScanWindows;
+        scanner.scan()
+    }
 }

@@ -1,36 +1,40 @@
-use crate::{Error, Result, Wifi};
+use crate::{Error, Result, Wifi, WlanScanner};
 
 use libwifi::{frame::components::RsnAkmSuite, parsers::parse_rsn_information};
 use win32_wlan::query_system_interfaces;
 
-/// Returns a list of WiFi hotspots in your area - Windows uses the `win32-wlan` crate.
-pub fn scan() -> Result<Vec<Wifi>> {
-    let interfaces = futures::executor::block_on(query_system_interfaces())
-        .map_err(|e| Error::InterfaceError(e.to_string()))?;
+pub struct ScanWindows;
 
-    if let Some(interface) = interfaces.first() {
-        let networks = interface
-            .blocking_scan()
-            .map_err(|e| Error::ScanFailed(e.to_string()))?;
+impl WlanScanner for ScanWindows {
+    /// Returns a list of WiFi hotspots in your area - Windows uses the `win32-wlan` crate.
+    fn scan(&mut self) -> Result<Vec<Wifi>> {
+        let interfaces = futures::executor::block_on(query_system_interfaces())
+            .map_err(|e| Error::InterfaceError(e.to_string()))?;
 
-        let wifi_list = networks
-            .iter()
-            .filter_map(|network| {
-                network.ssid().map(|ssid| Wifi {
-                    mac: network.bss_id().to_string(),
-                    ssid: ssid.to_string(),
-                    channel: get_channel(network.ch_center_frequency() / 1000),
-                    signal_level: network.rssi(),
-                    security: get_security(network.information_frame()),
+        if let Some(interface) = interfaces.first() {
+            let networks = interface
+                .blocking_scan()
+                .map_err(|e| Error::ScanFailed(e.to_string()))?;
+
+            let wifi_list = networks
+                .iter()
+                .filter_map(|network| {
+                    network.ssid().map(|ssid| Wifi {
+                        mac: network.bss_id().to_string(),
+                        ssid: ssid.to_string(),
+                        channel: get_channel(network.ch_center_frequency() / 1000),
+                        signal_level: network.rssi(),
+                        security: get_security(network.information_frame()),
+                    })
                 })
-            })
-            .collect();
+                .collect();
 
-        Ok(wifi_list)
-    } else {
-        Err(Error::InterfaceError(
-            "No WiFi interfaces found".to_string(),
-        ))
+            Ok(wifi_list)
+        } else {
+            Err(Error::InterfaceError(
+                "No WiFi interfaces found".to_string(),
+            ))
+        }
     }
 }
 
