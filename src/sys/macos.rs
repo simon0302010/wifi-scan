@@ -60,19 +60,18 @@ fn get_security(network: &CWNetwork) -> Vec<WifiSecurity> {
                 WifiSecurity::Wpa3EnterpriseEap256,
             ),
             (
-                CWSecurity::WPA2EnterpriseMixed,
+                CWSecurity::WPAEnterpriseMixed,
                 WifiSecurity::Wpa2EnterpriseEapFt,
             ),
             (
-                CWSecurity::WPA3PersonalMixed,
+                CWSecurity::WPAPersonalMixed,
                 WifiSecurity::Wpa3PersonalPsk256,
             ),
             (
-                CWSecurity::WPA2PersonalMixed,
+                CWSecurity::WPAPersonalMixed,
                 WifiSecurity::Wpa2PersonalPskFt,
             ),
             (CWSecurity::WPA3Transition, WifiSecurity::Wpa3PersonalSaeFt),
-            (CWSecurity::TDLS, WifiSecurity::Tdls),
             (CWSecurity::WEP, WifiSecurity::Wep),
             (CWSecurity::DynamicWEP, WifiSecurity::Wep),
             (CWSecurity::Enterprise, WifiSecurity::Enterprise),
@@ -86,7 +85,7 @@ fn get_security(network: &CWNetwork) -> Vec<WifiSecurity> {
 
         for (security, security_enum) in &securities_dict {
             if network.supportsSecurity(security.clone()) {
-                securities.push(security_enum);
+                securities.push(security_enum.clone());
             }
         }
 
