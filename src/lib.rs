@@ -83,6 +83,15 @@ pub struct Wifi {
     pub security: Vec<WifiSecurity>,
 }
 
+/// Human readable signal strength
+pub enum SignalStrength {
+    Unknown,
+    Weak,
+    Fair,
+    Good,
+    Excellent,
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -206,6 +215,33 @@ impl Wifi {
                     | WifiSecurity::Wpa3PersonalSaeFt
             )
         })
+    }
+
+    /// Returns signal strength as a categorial value
+    pub fn readable_signal(&self) -> SignalStrength {
+        match self.signal_level {
+            0 => SignalStrength::Unknown,
+            -50..=0 => SignalStrength::Excellent,
+            -70..=-61 => SignalStrength::Good,
+            -80..=-71 => SignalStrength::Fair,
+            _ => SignalStrength::Weak,
+        }
+    }
+
+    /// Returns `true` if the network is hidden
+    pub fn is_hidden(&self) -> bool {
+        self.ssid.is_empty()
+    }
+
+    /// Returns WiFi frequency in MHz
+    pub fn get_frequency(&self) -> u32 {
+        match self.channel {
+            1..=13 => 2407 + self.channel * 5,          // 2.4 GHz
+            14 => 2484,                                 // 2.4 GHz (Japan)
+            36..=165 => 5000 + self.channel * 5,        // 5 GHz
+            167..=233 => 5950 + (self.channel - 1) * 5, // 6 GHz
+            _ => 0,                                     // Invalid
+        }
     }
 }
 
