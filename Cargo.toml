@@ -16,7 +16,6 @@ path = "src/bin/main.rs"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 neli-wifi = "0.6.*"
-neli = "0.6.*"
 nl80211-rs = "0.1.1"
 netlink-rust = "0.1.1"
 
