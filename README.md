@@ -10,12 +10,13 @@
 This is a fork of [wifiscanner](https://github.com/booyaa/wifiscanner), a crate to list WiFi hotspots in your area.
 This fork moves `wifiscanner` away from using command line utilities that can't be relied on.
 The libary should be a drop-in replacement for booyaa's wifiscanner.
+Use versions 0.6.* if you want a drop-in replacement for the original crate.
 
 Tests taken from Christian Kuster's [node-wifi-scanner](https://github.com/ancasicolica/node-wifi-scanner)
 
 Full documentation can be found [here](https://docs.rs/wifi_scan).
 
-This project is made for the [Midnight Hackathon](https://midnight.hackclub.com/) from Hack Club.
+This project is made for the [Midnight Hackathon](https://midnight.hackclub.com/) organised Hack Club.
 
 ## Usage
 
