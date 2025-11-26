@@ -114,12 +114,14 @@ impl fmt::Display for WifiSecurity {
             WifiSecurity::Wpa2PersonalPsk => write!(f, "WPA2-Personal (PSK)"),
             WifiSecurity::Wpa2PersonalPskFt => write!(f, "WPA2-Personal (PSK-FT)"),
             WifiSecurity::Wpa3EnterpriseEap256 => write!(f, "WPA3-Enterprise (EAP-256)"),
-            WifiSecurity::Wpa3EnterpriseSuiteBEap256 => write!(f, "WPA3-Enterprise (Suite B EAP-256)"),
+            WifiSecurity::Wpa3EnterpriseSuiteBEap256 => {
+                write!(f, "WPA3-Enterprise (Suite B EAP-256)")
+            }
             WifiSecurity::Wpa3PersonalPsk256 => write!(f, "WPA3-Personal (PSK-256)"),
             WifiSecurity::Wpa3PersonalSae => write!(f, "WPA3-Personal (SAE)"),
             WifiSecurity::Wpa3PersonalSaeFt => write!(f, "WPA3-Personal (SAE-FT)"),
             WifiSecurity::WpaEnterprise => write!(f, "WPA-Enterprise"),
-            WifiSecurity::WpaPersonal => write!(f, "WPA-Personal")
+            WifiSecurity::WpaPersonal => write!(f, "WPA-Personal"),
         }
     }
 }
@@ -132,7 +134,11 @@ impl fmt::Display for Wifi {
             self.ssid,
             self.channel,
             self.signal_level,
-            self.security.iter().map(|s| s.to_string()).collect::<Vec<_>>().join(", ")
+            self.security
+                .iter()
+                .map(|s| s.to_string())
+                .collect::<Vec<_>>()
+                .join(", ")
         )
     }
 }
