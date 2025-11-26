@@ -1,6 +1,6 @@
 use objc2_core_wlan::{CWNetwork, CWSecurity, CWWiFiClient};
 
-use crate::{Error, Result, Wifi, WlanScanner};
+use crate::{Error, Result, Wifi, WifiSecurity, WlanScanner};
 
 pub struct ScanMac;
 
@@ -48,38 +48,40 @@ impl WlanScanner for ScanMac {
     }
 }
 
-fn get_security(network: &CWNetwork) -> String {
+fn get_security(network: &CWNetwork) -> Vec<WifiSecurity> {
     unsafe {
         let securities_dict = vec![
-            (CWSecurity::None, "Open"),
-            (CWSecurity::DynamicWEP, "Dynamic-WEP"),
-            (CWSecurity::Enterprise, "Enterprise"),
-            (CWSecurity::Personal, "Personal"),
-            (CWSecurity::Unknown, "Unknown"),
-            (CWSecurity::WEP, "WEP"),
-            (CWSecurity::WPA2Enterprise, "WPA2-Enterprise"),
-            (CWSecurity::WPA2Personal, "WPA2-Personal"),
-            (CWSecurity::WPA3Enterprise, "WPA3-Enterprise"),
-            (CWSecurity::WPA3Personal, "WPA3-Personal"),
-            (CWSecurity::WPA3Transition, "WPA3-Transition"),
-            (CWSecurity::WPAEnterprise, "WPA-Enterprise"),
-            (CWSecurity::WPAEnterpriseMixed, "WPA-Enterprise-Mixed"),
-            (CWSecurity::WPAPersonal, "WPA-Personal"),
-            (CWSecurity::WPAPersonalMixed, "WPA-Personal-Mixed"),
+            (CWSecurity::None, WifiSecurity::Open),
+            (CWSecurity::WPA2Personal, WifiSecurity::Wpa2PersonalPsk),
+            (CWSecurity::WPA3Personal, WifiSecurity::Wpa3PersonalSae),
+            (CWSecurity::WPA2Enterprise, WifiSecurity::Wpa2EnterpriseEap),
+            (CWSecurity::WPA3Enterprise, WifiSecurity::Wpa3EnterpriseEap256),
+            (CWSecurity::WPA2EnterpriseMixed, WifiSecurity::Wpa2EnterpriseEapFt),
+            (CWSecurity::WPA3PersonalMixed, WifiSecurity::Wpa3PersonalPsk256),
+            (CWSecurity::WPA2PersonalMixed, WifiSecurity::Wpa2PersonalPskFt),
+            (CWSecurity::WPA3Transition, WifiSecurity::Wpa3PersonalSaeFt),
+            (CWSecurity::TDLS, WifiSecurity::Tdls),
+            (CWSecurity::WEP, WifiSecurity::Wep),
+            (CWSecurity::DynamicWEP, WifiSecurity::Wep),
+            (CWSecurity::Enterprise, WifiSecurity::Enterprise),
+            (CWSecurity::Personal, WifiSecurity::Personal),
+            (CWSecurity::WPAEnterprise, WifiSecurity::WpaEnterprise),
+            (CWSecurity::WPAPersonal, WifiSecurity::WpaPersonal),
+            (CWSecurity::Unknown, WifiSecurity::Unknown),
         ];
 
-        let mut securities: Vec<String> = Vec::new();
+        let mut securities: Vec<WifiSecurity> = Vec::new();
 
-        for (security, security_str) in &securities_dict {
+        for (security, security_enum) in &securities_dict {
             if network.supportsSecurity(security.clone()) {
-                securities.push(security_str.to_string());
+                securities.push(security_enum);
             }
         }
 
         if securities.is_empty() {
-            securities.push("Unknown".to_string());
+            securities.push(WifiSecurity::Unknown);
         }
 
-        securities.join(", ")
+        securities
     }
 }

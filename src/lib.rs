@@ -44,6 +44,30 @@ pub enum Error {
     ScanFailed(String),
 }
 
+/// Enum of WiFi Securities wifi_scan can output.
+/// Not all implementations support all securities.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum WifiSecurity {
+    Open,
+    Wpa2PersonalPsk,
+    Wpa3PersonalSae,
+    Wpa2EnterpriseEap,
+    Wpa3EnterpriseEap256,
+    Wpa3EnterpriseSuiteBEap256,
+    Wpa2EnterpriseEapFt,
+    Wpa3PersonalPsk256,
+    Wpa2PersonalPskFt,
+    Wpa3PersonalSaeFt,
+    Wep,
+    WpaEnterprise,
+    WpaPersonal,
+    Personal,
+    Enterprise,
+    Tdls,
+    Unknown,
+    Other(String),
+}
+
 /// Wifi struct used to return information about wifi hotspots. Shows security on Linux since version 0.6.0.
 #[derive(Debug, PartialEq, Eq, Default, Clone)]
 pub struct Wifi {
@@ -55,8 +79,8 @@ pub struct Wifi {
     pub channel: u32,
     /// Wifi signal strength in dBm. Returns 0 if unknown.
     pub signal_level: i32,
-    /// Wifi security (e.g. WPA2-PSK)
-    pub security: String,
+    /// A list of all supported securities by the network
+    pub security: Vec<WifiSecurity>,
 }
 
 impl fmt::Display for Error {

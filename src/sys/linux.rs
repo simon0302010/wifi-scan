@@ -1,6 +1,6 @@
 use std::{thread::sleep, time::Duration};
 
-use crate::{Error, Result, Wifi, WlanScanner};
+use crate::{Error, Result, Wifi, WifiSecurity, WlanScanner};
 
 use neli_wifi::Socket as SocketN;
 use netlink_rust::{generic, Protocol, Socket};
@@ -77,7 +77,7 @@ impl WlanScanner for ScanLinux {
                                     },
                                     security: match bss.information_elements.clone() {
                                         Some(ie_data) => get_security(ie_data),
-                                        None => String::new(),
+                                        None => vec![],
                                     },
                                 });
                             }
@@ -186,55 +186,61 @@ fn get_ssid(ie_data: Vec<u8>) -> String {
     String::new()
 }
 
-fn get_security(ie_data: Vec<u8>) -> String {
+fn get_security(ie_data: Vec<u8>) -> Vec<WifiSecurity> {
     let ie_data: &[u8] = &ie_data;
     match InformationElement::parse_all(ie_data) {
         Ok(ies) => {
             for ie in ies {
                 if let InformationElement::RobustSecurityNetwork(sec_ie) = ie {
-                    let mut securities: Vec<String> = Vec::new();
+                    let mut securities: Vec<WifiSecurity> = Vec::new();
 
                     for akm in sec_ie.akms {
                         let security = match akm {
-                            AuthenticationKeyManagement::PreSharedKey => "WPA2-Personal (PSK)",
+                            AuthenticationKeyManagement::PreSharedKey => {
+                                WifiSecurity::Wpa2PersonalPsk
+                            }
                             AuthenticationKeyManagement::SimultaneousAuthenticationOfEquals => {
-                                "WPA3-Personal (SAE)"
+                                WifiSecurity::Wpa3PersonalSae
                             }
                             AuthenticationKeyManagement::PairwiseMasterKeySecurityAssociation => {
-                                "WPA2-Enterprise (EAP)"
+                                WifiSecurity::Wpa2EnterpriseEap
                             }
-                            AuthenticationKeyManagement::PMKSASha256 => "WPA3-Enterprise (EAP-256)",
+                            AuthenticationKeyManagement::PMKSASha256 => {
+                                WifiSecurity::Wpa3EnterpriseEap256
+                            }
                             AuthenticationKeyManagement::FastTransitionPMKSA => {
-                                "WPA2-Enterprise (EAP-FT)"
+                                WifiSecurity::Wpa2EnterpriseEapFt
                             }
                             AuthenticationKeyManagement::PreSharedKeySha256 => {
-                                "WPA3-Personal (PSK-256)"
+                                WifiSecurity::Wpa3PersonalPsk256
                             }
                             AuthenticationKeyManagement::FastTransitionPreSharedKey => {
-                                "WPA2-Personal (PSK-FT)"
+                                WifiSecurity::Wpa2PersonalPskFt
                             }
                             AuthenticationKeyManagement::FastTransitionSAE => {
-                                "WPA3-Personal (SAE-FT)"
+                                WifiSecurity::Wpa3PersonalSaeFt
                             }
-                            AuthenticationKeyManagement::TunneledDirectLinkSetup => "TDLS",
-                            _ => "",
+                            AuthenticationKeyManagement::TunneledDirectLinkSetup => {
+                                WifiSecurity::Tdls
+                            }
+                            _ => WifiSecurity::Unknown,
                         };
 
-                        if !security.is_empty() {
-                            securities.push(security.to_string());
+                        if security != WifiSecurity::Unknown {
+                            securities.push(security);
                         }
                     }
 
                     if securities.is_empty() {
-                        securities.push("Unknown".to_string());
+                        securities.push(WifiSecurity::Unknown);
                     }
 
-                    return securities.join(", ");
+                    return securities;
                 }
             }
         }
-        Err(_) => return String::new(),
+        Err(_) => return vec![WifiSecurity::Unknown],
     }
 
-    String::new()
+    vec![WifiSecurity::Unknown]
 }

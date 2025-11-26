@@ -1,4 +1,4 @@
-use crate::{Error, Result, Wifi, WlanScanner};
+use crate::{Error, Result, Wifi, WifiSecurity, WlanScanner};
 
 use libwifi::{frame::components::RsnAkmSuite, parsers::parse_rsn_information};
 use win32_wlan::query_system_interfaces;
@@ -52,10 +52,10 @@ fn get_channel(frequency: u32) -> u32 {
     }
 }
 
-fn get_security(ie_data: &[u8]) -> String {
+fn get_security(ie_data: &[u8]) -> Vec<WifiSecurity> {
     let mut has_rsn = false;
     let mut has_wpa = false;
-    let mut securities = Vec::new();
+    let mut securities: Vec<WifiSecurity> = Vec::new();
 
     let mut i = 0;
     while i + 1 < ie_data.len() {
@@ -74,7 +74,7 @@ fn get_security(ie_data: &[u8]) -> String {
                 if let Ok(rsn) = parse_rsn_information(element_data) {
                     let sec = format_security(&rsn.akm_suites);
                     if !sec.is_empty() {
-                        securities.push(sec);
+                        securities.extend(sec.iter().cloned());
                     }
                 }
             }
@@ -83,7 +83,7 @@ fn get_security(ie_data: &[u8]) -> String {
                     let oui = &element_data[0..3];
                     if oui == [0x00, 0x50, 0xF2] && element_data.get(3) == Some(&0x01) {
                         has_wpa = true;
-                        securities.push("WPA-PSK".to_string());
+                        securities.push(WifiSecurity::WpaPersonal);
                     }
                 }
             }
@@ -95,39 +95,39 @@ fn get_security(ie_data: &[u8]) -> String {
 
     if securities.is_empty() {
         if has_rsn || has_wpa {
-            "WPA/WPA2".to_string()
+            vec![WifiSecurity::WpaPersonal, WifiSecurity::Wpa2PersonalPsk]
         } else {
-            "Open".to_string()
+            vec![WifiSecurity::Open]
         }
     } else {
-        securities.join(", ")
+        securities
     }
 }
 
-fn format_security(akm_suites: &[RsnAkmSuite]) -> String {
-    let mut securities = Vec::new();
+fn format_security(akm_suites: &[RsnAkmSuite]) -> Vec<WifiSecurity> {
+    let mut securities: Vec<WifiSecurity> = Vec::new();
 
     for akm_suite in akm_suites {
         let security = match akm_suite {
-            RsnAkmSuite::PSK => "WPA2-Personal (PSK)",
-            RsnAkmSuite::SAE => "WPA3-Personal (SAE)",
-            RsnAkmSuite::EAP => "WPA2-Enterprise (EAP)",
-            RsnAkmSuite::EAP256 => "WPA3-Enterprise (EAP-256)",
-            RsnAkmSuite::EAPFT => "WPA2-Enterprise (EAP-FT)",
-            RsnAkmSuite::PSK256 => "WPA3-Personal (PSK-256)",
-            RsnAkmSuite::PSKFT => "WPA2-Personal (PSK-FT)",
-            RsnAkmSuite::SUITEBEAP256 => "WPA3-Enterprise (Suite-B EAP-256)",
-            _ => "",
+            RsnAkmSuite::PSK => WifiSecurity::Wpa2PersonalPsk,
+            RsnAkmSuite::SAE => WifiSecurity::Wpa3PersonalSae,
+            RsnAkmSuite::EAP => WifiSecurity::Wpa2EnterpriseEap,
+            RsnAkmSuite::EAP256 => WifiSecurity::Wpa3EnterpriseEap256,
+            RsnAkmSuite::EAPFT => WifiSecurity::Wpa2EnterpriseEapFt,
+            RsnAkmSuite::PSK256 => WifiSecurity::Wpa3PersonalPsk256,
+            RsnAkmSuite::PSKFT => WifiSecurity::Wpa2PersonalPskFt,
+            RsnAkmSuite::SUITEBEAP256 => WifiSecurity::Wpa3EnterpriseSuiteBEap256,
+            _ => WifiSecurity::Unknown,
         };
 
-        if !security.is_empty() {
-            securities.push(security.to_string());
+        if security != WifiSecurity::Unknown {
+            securities.push(security);
         }
     }
 
     if securities.is_empty() {
-        "WPA2".to_string()
+        vec![WifiSecurity::Wpa2PersonalPsk]
     } else {
-        securities.join(", ")
+        securities
     }
 }
