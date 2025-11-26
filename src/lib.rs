@@ -125,6 +125,7 @@ impl fmt::Display for WifiSecurity {
         }
     }
 }
+
 impl fmt::Display for Wifi {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -140,6 +141,71 @@ impl fmt::Display for Wifi {
                 .collect::<Vec<_>>()
                 .join(", ")
         )
+    }
+}
+
+impl Wifi {
+    /// Returns `true` if the network is open
+    pub fn is_open(&self) -> bool {
+        self.security.len() == 1 && self.security[0] == WifiSecurity::Open
+    }
+
+    /// Returns `true` if the network supports WPA3
+    pub fn is_wpa3(&self) -> bool {
+        self.security.iter().any(|s| {
+            matches!(
+                s,
+                WifiSecurity::Wpa3EnterpriseEap256
+                    | WifiSecurity::Wpa3EnterpriseSuiteBEap256
+                    | WifiSecurity::Wpa3PersonalPsk256
+                    | WifiSecurity::Wpa3PersonalSae
+                    | WifiSecurity::Wpa3PersonalSaeFt
+            )
+        })
+    }
+
+    /// Returns `true` if the network supports WPA2
+    pub fn is_wpa2(&self) -> bool {
+        self.security.iter().any(|s| {
+            matches!(
+                s,
+                WifiSecurity::Wpa2EnterpriseEap
+                    | WifiSecurity::Wpa2EnterpriseEapFt
+                    | WifiSecurity::Wpa2PersonalPsk
+                    | WifiSecurity::Wpa2PersonalPskFt
+            )
+        })
+    }
+
+    /// Returns `true` if the network is an enterprise network
+    pub fn is_enterprise(&self) -> bool {
+        self.security.iter().any(|s| {
+            matches!(
+                s,
+                WifiSecurity::Enterprise
+                    | WifiSecurity::WpaEnterprise
+                    | WifiSecurity::Wpa2EnterpriseEap
+                    | WifiSecurity::Wpa2EnterpriseEapFt
+                    | WifiSecurity::Wpa3EnterpriseEap256
+                    | WifiSecurity::Wpa3EnterpriseSuiteBEap256
+            )
+        })
+    }
+
+    /// Returns `true` if the wifi is a personal network
+    pub fn is_personal(&self) -> bool {
+        self.security.iter().any(|s| {
+            matches!(
+                s,
+                WifiSecurity::Personal
+                    | WifiSecurity::WpaPersonal
+                    | WifiSecurity::Wpa2PersonalPsk
+                    | WifiSecurity::Wpa2PersonalPskFt
+                    | WifiSecurity::Wpa3PersonalPsk256
+                    | WifiSecurity::Wpa3PersonalSae
+                    | WifiSecurity::Wpa3PersonalSaeFt
+            )
+        })
     }
 }
 
