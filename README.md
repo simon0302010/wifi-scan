@@ -9,14 +9,11 @@
 
 This is a fork of [wifiscanner](https://github.com/booyaa/wifiscanner), a crate to list WiFi hotspots in your area.
 This fork moves `wifiscanner` away from using command line utilities that can't be relied on.
-The libary should be a drop-in replacement for booyaa's wifiscanner.
 Use versions 0.6.* if you want a drop-in replacement for the original crate.
-
-Tests taken from Christian Kuster's [node-wifi-scanner](https://github.com/ancasicolica/node-wifi-scanner)
 
 Full documentation can be found [here](https://docs.rs/wifi_scan).
 
-This project is made for the [Midnight Hackathon](https://midnight.hackclub.com/) organised Hack Club.
+I started developing this project during [Midnight Hackathon](https://midnight.hackclub.com/) organised by Hack Club.
 
 ## Usage
 
@@ -25,7 +22,7 @@ used by adding `wifi_scan` to the dependencies in your project's `Cargo.toml`.
 
 ```toml
 [dependencies]
-wifi_scan = "0.6.*"
+wifi_scan = "0.7.*"
 ```
 
 > Note: On macOS, the SSIDs and BSSIDs of networks are only shown if location access is granted to the program.
@@ -42,6 +39,7 @@ using: `cargo run --example scan`.
 
 ## Changelog
 
+- 0.7.0 - changed api for scan function. also added other functions. more details in the docs.
 - 0.6.3 - switch to using `corewlan` on macOS due to the removal of the `airport` utility
 - 0.6.2 - stop relying on `netsh` utility on windows
 - 0.6.1 - support for multiple wifi adapters on linux

@@ -9,6 +9,7 @@
 //! A crate to list WiFi hotspots in your area.
 //!
 //! As of v0.5.x macOS, Windows and Linux are supported.
+//! Use versions 0.6.* if you want a drop-in replacement for the original crate.
 //!
 //! # Usage
 //!
@@ -17,7 +18,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! wifi_scan = "0.6.*"
+//! wifi_scan = "0.7.*"
 //! ```
 //!
 //! # Example
