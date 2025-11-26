@@ -55,10 +55,22 @@ fn get_security(network: &CWNetwork) -> Vec<WifiSecurity> {
             (CWSecurity::WPA2Personal, WifiSecurity::Wpa2PersonalPsk),
             (CWSecurity::WPA3Personal, WifiSecurity::Wpa3PersonalSae),
             (CWSecurity::WPA2Enterprise, WifiSecurity::Wpa2EnterpriseEap),
-            (CWSecurity::WPA3Enterprise, WifiSecurity::Wpa3EnterpriseEap256),
-            (CWSecurity::WPA2EnterpriseMixed, WifiSecurity::Wpa2EnterpriseEapFt),
-            (CWSecurity::WPA3PersonalMixed, WifiSecurity::Wpa3PersonalPsk256),
-            (CWSecurity::WPA2PersonalMixed, WifiSecurity::Wpa2PersonalPskFt),
+            (
+                CWSecurity::WPA3Enterprise,
+                WifiSecurity::Wpa3EnterpriseEap256,
+            ),
+            (
+                CWSecurity::WPA2EnterpriseMixed,
+                WifiSecurity::Wpa2EnterpriseEapFt,
+            ),
+            (
+                CWSecurity::WPA3PersonalMixed,
+                WifiSecurity::Wpa3PersonalPsk256,
+            ),
+            (
+                CWSecurity::WPA2PersonalMixed,
+                WifiSecurity::Wpa2PersonalPskFt,
+            ),
             (CWSecurity::WPA3Transition, WifiSecurity::Wpa3PersonalSaeFt),
             (CWSecurity::TDLS, WifiSecurity::Tdls),
             (CWSecurity::WEP, WifiSecurity::Wep),
