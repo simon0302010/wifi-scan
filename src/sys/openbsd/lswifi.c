@@ -112,7 +112,7 @@ void format_interface_data(struct wifidat* data, lswifi_result **networks, int *
 			continue;
 		}
 
-		printf("%s: nr_capinfo = %u; nr_rsnprotos = %u; nr_rsnakms = %u\n", ssid, network->nr_capinfo, network->nr_rsnprotos, network->rsnakms);
+		printf("%s: nr_capinfo = %u; nr_rsnprotos = %u; nr_rsnakms = %u\n", ssid, network->nr_capinfo, network->nr_rsnprotos, network->nr_rsnakms);
 
 		lswifi_result *result = malloc(sizeof(lswifi_result));
 		if (result == NULL) {
