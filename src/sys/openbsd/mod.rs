@@ -18,7 +18,7 @@ impl WlanScanner for ScanOpenBsd {
                 Wifi {
                     mac: ConstCharArray(network.bssid).into(),
                     ssid: ConstCharArray(network.ssid).into(),
-                    channel: network.channel,
+                    channel: network.channel as u32,
                     signal_level: network.rssi,
                     security: Vec::new()
                 }
