@@ -8,6 +8,7 @@ pub struct ScanResult {
     pub ssid: *const c_char,
     pub bssid: *const c_char,
     pub rssi: c_int,
+    pub channel: c_int
 }
 
 unsafe extern "C" {

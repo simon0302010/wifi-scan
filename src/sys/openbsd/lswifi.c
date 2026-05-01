@@ -63,6 +63,7 @@ typedef struct {
 	char *ssid;
 	char *bssid;
 	int rssi;
+	int channel;
 } lswifi_result;
 
 int network_name_is_sane(const u_char* name, int len)
@@ -121,7 +122,8 @@ void format_interface_data(struct wifidat* data, lswifi_result **networks, int *
 				.connected = connected,
 				.ssid = ssid,
 				.bssid = bssid,
-				.rssi = rssi
+				.rssi = rssi,
+				.channel = network->nr_channel
 			};
 		}
 
