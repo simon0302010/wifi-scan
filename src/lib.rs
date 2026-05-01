@@ -284,4 +284,10 @@ pub fn scan() -> Result<Vec<Wifi>> {
         let mut scanner = sys::windows::ScanWindows;
         scanner.scan()
     }
+
+    #[cfg(target_os = "openbsd")]
+    {
+        let mut scanner = sys::openbsd::ScanOpenBsd;
+        scanner.scan()
+    }
 }
