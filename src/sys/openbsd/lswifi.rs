@@ -35,9 +35,11 @@ pub struct ConstCharArray(pub *const c_char);
 
 impl From<ConstCharArray> for String {
     fn from(value: ConstCharArray) -> Self {
+        if value.0.is_null() {
+            return String::new();
+        }
+
         let c_str: &CStr = unsafe { CStr::from_ptr(value.0) };
-        let str_slice: &str = c_str.to_str().unwrap();
-        let str_buf: String = str_slice.to_owned();
-        str_buf
+        c_str.to_string_lossy().into_owned()
     }
 }
