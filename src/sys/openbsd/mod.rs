@@ -1,4 +1,4 @@
-use crate::{Result, Wifi, WlanScanner, sys::openbsd::lswifi::{ConstCharArray, NetworkList, ScanResult, free_networks, get_networks}};
+use crate::{Error, Result, Wifi, WlanScanner, sys::openbsd::lswifi::{ConstCharArray, NetworkList, ScanResult, free_networks, get_networks}};
 
 mod lswifi;
 
@@ -8,6 +8,9 @@ impl WlanScanner for ScanOpenBsd {
     fn scan(&mut self) -> Result<Vec<Wifi>> {
         let networks = unsafe {
             let networks_ptr = get_networks();
+            if networks_ptr.is_null() {
+                return Err(Error::ScanFailed("Unknown error occurred".to_string()));
+            }
             let networks: Vec<ScanResult> = NetworkList(networks_ptr).into();
             free_networks(networks_ptr);
             networks
