@@ -51,32 +51,32 @@ impl WlanScanner for ScanMac {
 fn get_security(network: &CWNetwork) -> Vec<WifiSecurity> {
     unsafe {
         let securities_dict = vec![
-            (CWSecurity::None, WifiSecurity::Open),
-            (CWSecurity::WEP, WifiSecurity::Wep),
-            (CWSecurity::DynamicWEP, WifiSecurity::Wep),
+            (CWSecurity::None, vec![WifiSecurity::Open]),
+            (CWSecurity::WEP, vec![WifiSecurity::Wep]),
+            (CWSecurity::DynamicWEP, vec![WifiSecurity::Wep]),
 
-            (CWSecurity::WPAPersonal, WifiSecurity::WpaPersonal),
-            (CWSecurity::WPA2Personal, WifiSecurity::Wpa2PersonalPsk),
-            (CWSecurity::WPA3Personal, WifiSecurity::Wpa3PersonalSae),
+            (CWSecurity::WpaPersonalPsk, vec![WifiSecurity::WpaPersonalPsk]),
+            (CWSecurity::WPA2Personal, vec![WifiSecurity::Wpa2PersonalPsk]),
+            (CWSecurity::WPA3Personal, vec![WifiSecurity::Wpa3PersonalSae]),
 
-            (CWSecurity::WPAPersonalMixed, WifiSecurity::Wpa2PersonalPsk), // usually wpa1/wpa2
-            (CWSecurity::WPA3Transition, WifiSecurity::Wpa3PersonalSae),   // wpa2/wpa3 compatibility
+            (CWSecurity::WpaPersonalPskMixed, vec![WifiSecurity::WpaPersonalPsk, WifiSecurity::Wpa2PersonalPsk]),
+            (CWSecurity::WPA3Transition, vec![WifiSecurity::Wpa3PersonalSae, WifiSecurity::Wpa2PersonalPsk]),
 
-            (CWSecurity::WPAEnterprise, WifiSecurity::WpaEnterprise),
-            (CWSecurity::WPA2Enterprise, WifiSecurity::Wpa2EnterpriseEap),
-            (CWSecurity::WPA3Enterprise, WifiSecurity::Wpa3EnterpriseEap256),
-            (CWSecurity::WPAEnterpriseMixed, WifiSecurity::Wpa2EnterpriseEap),
+            (CWSecurity::WpaEnterpriseEap, vec![WifiSecurity::WpaEnterpriseEap]),
+            (CWSecurity::WPA2Enterprise, vec![WifiSecurity::Wpa2EnterpriseEap]),
+            (CWSecurity::WPA3Enterprise, vec![WifiSecurity::Wpa3EnterpriseEap]),
+            (CWSecurity::WpaEnterpriseEapMixed, vec![WifiSecurity::Wpa2EnterpriseEap]),
 
-            (CWSecurity::Enterprise, WifiSecurity::Enterprise),
-            (CWSecurity::Personal, WifiSecurity::Personal),
-            (CWSecurity::Unknown, WifiSecurity::Unknown),
+            (CWSecurity::Enterprise, vec![WifiSecurity::Enterprise]),
+            (CWSecurity::Personal, vec![WifiSecurity::Personal]),
+            (CWSecurity::Unknown, vec![WifiSecurity::Unknown]),
         ];
 
         let mut securities: Vec<WifiSecurity> = Vec::new();
 
-        for (security, security_enum) in &securities_dict {
+        for (security, security_enums) in &securities_dict {
             if network.supportsSecurity(security.clone()) {
-                securities.push(security_enum.clone());
+                securities.extend(security_enums.clone());
             }
         }
 

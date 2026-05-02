@@ -65,13 +65,13 @@ pub enum WifiSecurity {
     Wpa2PersonalPsk256,
     Wpa3PersonalSaeFt,
     Wep,
-    WpaEnterprise,
-    WpaPersonal,
-    /// This is very uncommon and only found on Windows
+    WpaEnterpriseEap,
+    WpaPersonalPsk,
+    /// This is very uncommon and only found on macOS
     Personal,
-    /// This is very uncommon and only found on Windows
+    /// This is very uncommon and only found on macOS
     Enterprise,
-    /// This is very uncommon and only found on Windows
+    /// This is very uncommon and only found on macOS
     Tdls,
     Unknown,
     Other(String),
@@ -138,8 +138,8 @@ impl fmt::Display for WifiSecurity {
             WifiSecurity::Wpa2PersonalPsk256 => write!(f, "WPA2-Personal (PSK-256)"),
             WifiSecurity::Wpa3PersonalSae => write!(f, "WPA3-Personal (SAE)"),
             WifiSecurity::Wpa3PersonalSaeFt => write!(f, "WPA3-Personal (SAE-FT)"),
-            WifiSecurity::WpaEnterprise => write!(f, "WPA-Enterprise"),
-            WifiSecurity::WpaPersonal => write!(f, "WPA-Personal"),
+            WifiSecurity::WpaEnterpriseEap => write!(f, "WPA-Enterprise"),
+            WifiSecurity::WpaPersonalPsk => write!(f, "WPA-Personal"),
             WifiSecurity::Wpa2EnterpriseEap256 => write!(f, "WPA2-Enterprise (EPA-256)"),
             WifiSecurity::Wpa3EnterpriseEap => write!(f, "WPA3-Enterprise (EAP)")
         }
@@ -206,7 +206,7 @@ impl Wifi {
             matches!(
                 s,
                 WifiSecurity::Enterprise
-                    | WifiSecurity::WpaEnterprise
+                    | WifiSecurity::WpaEnterpriseEap
                     | WifiSecurity::Wpa2EnterpriseEap
                     | WifiSecurity::Wpa2EnterpriseEapFt
                     | WifiSecurity::Wpa3EnterpriseEap256
@@ -223,7 +223,7 @@ impl Wifi {
             matches!(
                 s,
                 WifiSecurity::Personal
-                    | WifiSecurity::WpaPersonal
+                    | WifiSecurity::WpaPersonalPsk
                     | WifiSecurity::Wpa2PersonalPsk
                     | WifiSecurity::Wpa2PersonalPskFt
                     | WifiSecurity::Wpa3PersonalSae

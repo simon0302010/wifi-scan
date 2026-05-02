@@ -69,7 +69,7 @@ fn get_security(ie_data: &[u8]) -> Vec<WifiSecurity> {
                     let oui = &element_data[0..3];
                     if oui == [0x00, 0x50, 0xF2] && element_data.get(3) == Some(&0x01) {
                         has_wpa = true;
-                        securities.push(WifiSecurity::WpaPersonal);
+                        securities.push(WifiSecurity::WpaPersonalPsk);
                     }
                 }
             }
@@ -81,7 +81,7 @@ fn get_security(ie_data: &[u8]) -> Vec<WifiSecurity> {
 
     if securities.is_empty() {
         if has_rsn || has_wpa {
-            vec![WifiSecurity::WpaPersonal, WifiSecurity::Wpa2PersonalPsk]
+            vec![WifiSecurity::WpaPersonalPsk, WifiSecurity::Wpa2PersonalPsk]
         } else {
             vec![WifiSecurity::Open]
         }

@@ -50,9 +50,9 @@ impl ScanResult {
 
         if features.contains(&"wpa1") {
             if features.contains(&"psk") {
-                securities.push(WifiSecurity::WpaPersonal);
+                securities.push(WifiSecurity::WpaPersonalPsk);
             } else if features.contains(&"802.1x") {
-                securities.push(WifiSecurity::WpaEnterprise);
+                securities.push(WifiSecurity::WpaEnterpriseEap);
             }
         }
 
