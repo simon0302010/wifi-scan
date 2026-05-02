@@ -54,19 +54,42 @@ fn get_security(network: &CWNetwork) -> Vec<WifiSecurity> {
             (CWSecurity::None, vec![WifiSecurity::Open]),
             (CWSecurity::WEP, vec![WifiSecurity::Wep]),
             (CWSecurity::DynamicWEP, vec![WifiSecurity::Wep]),
-
-            (CWSecurity::WpaPersonalPsk, vec![WifiSecurity::WpaPersonalPsk]),
-            (CWSecurity::WPA2Personal, vec![WifiSecurity::Wpa2PersonalPsk]),
-            (CWSecurity::WPA3Personal, vec![WifiSecurity::Wpa3PersonalSae]),
-
-            (CWSecurity::WpaPersonalPskMixed, vec![WifiSecurity::WpaPersonalPsk, WifiSecurity::Wpa2PersonalPsk]),
-            (CWSecurity::WPA3Transition, vec![WifiSecurity::Wpa3PersonalSae, WifiSecurity::Wpa2PersonalPsk]),
-
-            (CWSecurity::WpaEnterpriseEap, vec![WifiSecurity::WpaEnterpriseEap]),
-            (CWSecurity::WPA2Enterprise, vec![WifiSecurity::Wpa2EnterpriseEap]),
-            (CWSecurity::WPA3Enterprise, vec![WifiSecurity::Wpa3EnterpriseEap]),
-            (CWSecurity::WpaEnterpriseEapMixed, vec![WifiSecurity::Wpa2EnterpriseEap]),
-
+            (
+                CWSecurity::WpaPersonalPsk,
+                vec![WifiSecurity::WpaPersonalPsk],
+            ),
+            (
+                CWSecurity::WPA2Personal,
+                vec![WifiSecurity::Wpa2PersonalPsk],
+            ),
+            (
+                CWSecurity::WPA3Personal,
+                vec![WifiSecurity::Wpa3PersonalSae],
+            ),
+            (
+                CWSecurity::WpaPersonalPskMixed,
+                vec![WifiSecurity::WpaPersonalPsk, WifiSecurity::Wpa2PersonalPsk],
+            ),
+            (
+                CWSecurity::WPA3Transition,
+                vec![WifiSecurity::Wpa3PersonalSae, WifiSecurity::Wpa2PersonalPsk],
+            ),
+            (
+                CWSecurity::WpaEnterpriseEap,
+                vec![WifiSecurity::WpaEnterpriseEap],
+            ),
+            (
+                CWSecurity::WPA2Enterprise,
+                vec![WifiSecurity::Wpa2EnterpriseEap],
+            ),
+            (
+                CWSecurity::WPA3Enterprise,
+                vec![WifiSecurity::Wpa3EnterpriseEap],
+            ),
+            (
+                CWSecurity::WpaEnterpriseEapMixed,
+                vec![WifiSecurity::Wpa2EnterpriseEap],
+            ),
             (CWSecurity::Enterprise, vec![WifiSecurity::Enterprise]),
             (CWSecurity::Personal, vec![WifiSecurity::Personal]),
             (CWSecurity::Unknown, vec![WifiSecurity::Unknown]),

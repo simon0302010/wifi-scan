@@ -141,7 +141,7 @@ impl fmt::Display for WifiSecurity {
             WifiSecurity::WpaEnterpriseEap => write!(f, "WPA-Enterprise"),
             WifiSecurity::WpaPersonalPsk => write!(f, "WPA-Personal"),
             WifiSecurity::Wpa2EnterpriseEap256 => write!(f, "WPA2-Enterprise (EPA-256)"),
-            WifiSecurity::Wpa3EnterpriseEap => write!(f, "WPA3-Enterprise (EAP)")
+            WifiSecurity::Wpa3EnterpriseEap => write!(f, "WPA3-Enterprise (EAP)"),
         }
     }
 }

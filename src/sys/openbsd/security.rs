@@ -1,6 +1,9 @@
 #![allow(unused)]
 
-use crate::{WifiSecurity, sys::openbsd::lswifi::{ConstCharArray, ScanResult}};
+use crate::{
+    sys::openbsd::lswifi::{ConstCharArray, ScanResult},
+    WifiSecurity,
+};
 
 const IEEE80211_WPA_PROTO_WPA1: u32 = 0x01;
 const IEEE80211_WPA_PROTO_WPA2: u32 = 0x02;
