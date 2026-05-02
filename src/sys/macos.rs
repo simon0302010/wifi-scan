@@ -54,7 +54,7 @@ fn get_security(network: &CWNetwork) -> Vec<WifiSecurity> {
             (CWSecurity::None, vec![WifiSecurity::Open]),
             (CWSecurity::WEP, vec![WifiSecurity::Wep]),
             (CWSecurity::DynamicWEP, vec![WifiSecurity::Wep]),
-            (CWSecurity::WpaPersonal, vec![WifiSecurity::WpaPersonalPsk]),
+            (CWSecurity::WPAPersonal, vec![WifiSecurity::WpaPersonalPsk]),
             (
                 CWSecurity::WPA2Personal,
                 vec![WifiSecurity::Wpa2PersonalPsk],
@@ -64,7 +64,7 @@ fn get_security(network: &CWNetwork) -> Vec<WifiSecurity> {
                 vec![WifiSecurity::Wpa3PersonalSae],
             ),
             (
-                CWSecurity::WpaPersonalMixed,
+                CWSecurity::WPAPersonalMixed,
                 vec![WifiSecurity::WpaPersonalPsk, WifiSecurity::Wpa2PersonalPsk],
             ),
             (
@@ -72,7 +72,7 @@ fn get_security(network: &CWNetwork) -> Vec<WifiSecurity> {
                 vec![WifiSecurity::Wpa3PersonalSae, WifiSecurity::Wpa2PersonalPsk],
             ),
             (
-                CWSecurity::WpaEnterprise,
+                CWSecurity::WPAEnterprise,
                 vec![WifiSecurity::WpaEnterpriseEap],
             ),
             (
@@ -84,7 +84,7 @@ fn get_security(network: &CWNetwork) -> Vec<WifiSecurity> {
                 vec![WifiSecurity::Wpa3EnterpriseEap],
             ),
             (
-                CWSecurity::WpaEnterpriseMixed,
+                CWSecurity::WPAEnterpriseMixed,
                 vec![WifiSecurity::Wpa2EnterpriseEap],
             ),
             (CWSecurity::Enterprise, vec![WifiSecurity::Unknown]),
