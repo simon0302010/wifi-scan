@@ -53,6 +53,7 @@ pub enum Error {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum WifiSecurity {
     Open,
+    Wep,
     Wpa2PersonalPsk,
     Wpa3PersonalSae,
     Wpa2EnterpriseEap,
@@ -64,15 +65,9 @@ pub enum WifiSecurity {
     Wpa2PersonalPskFt,
     Wpa2PersonalPsk256,
     Wpa3PersonalSaeFt,
-    Wep,
-    WpaEnterpriseEap,
     WpaPersonalPsk,
-    /// This is very uncommon and only found on macOS
-    Personal,
-    /// This is very uncommon and only found on macOS
-    Enterprise,
-    /// This is very uncommon and only found on macOS
-    Tdls,
+    WpaEnterpriseEap,
+    TunneledDirectLinkSetup,
     Unknown,
     Other(String),
 }
@@ -120,11 +115,9 @@ impl fmt::Display for Error {
 impl fmt::Display for WifiSecurity {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            WifiSecurity::Enterprise => write!(f, "Enterprise"),
             WifiSecurity::Open => write!(f, "Open"),
             WifiSecurity::Other(sec) => write!(f, "{}", sec),
-            WifiSecurity::Personal => write!(f, "Personal"),
-            WifiSecurity::Tdls => write!(f, "TLDS"),
+            WifiSecurity::TunneledDirectLinkSetup => write!(f, "Tunneled Direct Link Setup"),
             WifiSecurity::Unknown => write!(f, "Unknown"),
             WifiSecurity::Wep => write!(f, "WEP"),
             WifiSecurity::Wpa2EnterpriseEap => write!(f, "WPA2-Enterprise (EAP)"),
@@ -205,8 +198,7 @@ impl Wifi {
         self.security.iter().any(|s| {
             matches!(
                 s,
-                WifiSecurity::Enterprise
-                    | WifiSecurity::WpaEnterpriseEap
+                WifiSecurity::WpaEnterpriseEap
                     | WifiSecurity::Wpa2EnterpriseEap
                     | WifiSecurity::Wpa2EnterpriseEapFt
                     | WifiSecurity::Wpa3EnterpriseEap256
@@ -222,8 +214,7 @@ impl Wifi {
         self.security.iter().any(|s| {
             matches!(
                 s,
-                WifiSecurity::Personal
-                    | WifiSecurity::WpaPersonalPsk
+                WifiSecurity::WpaPersonalPsk
                     | WifiSecurity::Wpa2PersonalPsk
                     | WifiSecurity::Wpa2PersonalPskFt
                     | WifiSecurity::Wpa3PersonalSae

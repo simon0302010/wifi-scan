@@ -206,7 +206,7 @@ fn get_security(ie_data: Vec<u8>) -> Vec<WifiSecurity> {
                                 WifiSecurity::Wpa3PersonalSaeFt
                             }
                             AuthenticationKeyManagement::TunneledDirectLinkSetup => {
-                                WifiSecurity::Tdls
+                                WifiSecurity::TunneledDirectLinkSetup
                             }
                             _ => WifiSecurity::Unknown,
                         };
