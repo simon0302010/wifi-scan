@@ -1,6 +1,6 @@
 [package]
 name = "wifi_scan"
-version = "0.7.0"
+version = "0.7.1"
 authors = ["simon0302010 <simon@hackclub.app>"]
 description = "A crate to list WiFi hotspots in your area. Fork of booyaa/wifiscanner with many improvements to make it future-proof."
 repository = "https://github.com/simon0302010/wifi-scan"
@@ -9,10 +9,6 @@ readme = "README.md"
 keywords = ["wifi","hotspots","network"]
 license = "Apache-2.0"
 edition = "2021"
-
-[[bin]]
-name = "wifi_scan"
-path = "src/bin/main.rs"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 neli-wifi = "0.6.*"

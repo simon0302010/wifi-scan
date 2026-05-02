@@ -15,6 +15,19 @@ Full documentation can be found [here](https://docs.rs/wifi_scan).
 
 I started developing this project during [Midnight Hackathon](https://midnight.hackclub.com/) organised by Hack Club.
 
+## Supported Operating Systems
+
+| ✅ Fully working | ⚠️ Partially working | 🛠️ Planned |
+
+Operating System    | Status    | Notes
+--------------------|-----------|--------------------------------------------------
+macOS               | ⚠️        | requires location access to show bssid and ssid
+Linux               | ✅        |
+Windows             | ✅        |
+OpenBSD             | ✅        | wpa3-enterprise networks cannot be detected as such
+FreeBSD             | 🛠️        |
+Android             | 🛠️        |
+
 ## Usage
 
 This crate is [on crates.io](https://crates.io/crates/wifi_scan) and can be
@@ -24,8 +37,6 @@ used by adding `wifi_scan` to the dependencies in your project's `Cargo.toml`.
 [dependencies]
 wifi_scan = "0.7.*"
 ```
-
-> Note: On macOS, the SSIDs and BSSIDs of networks are only shown if location access is granted to the program.
 
 ## Example
 
@@ -39,6 +50,7 @@ using: `cargo run --example scan`.
 
 ## Changelog
 
+- 0.7.1 - added full support for OpenBSD
 - 0.7.0 - changed api for scan function. also added other functions. more details in the docs.
 - 0.6.3 - switch to using `corewlan` on macOS due to the removal of the `airport` utility
 - 0.6.2 - stop relying on `netsh` utility on windows
