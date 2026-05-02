@@ -1,6 +1,6 @@
 #![allow(unused)]
 
-use crate::sys::openbsd::lswifi::{ConstCharArray, ScanResult};
+use crate::{WifiSecurity, sys::openbsd::lswifi::{ConstCharArray, ScanResult}};
 
 const IEEE80211_WPA_PROTO_WPA1: u32 = 0x01;
 const IEEE80211_WPA_PROTO_WPA2: u32 = 0x02;
@@ -21,9 +21,51 @@ const IEEE80211_WPA_AKM_SAE: u32 = 0x10;
 
 const IEEE80211_CAPINFO_PRIVACY: u32 = 0x0010;
 
-pub fn print_security(wifi: ScanResult) {
-    let ssid: String = ConstCharArray(wifi.ssid).into();
-    print!("{}:", ssid);
+impl ScanResult {
+    pub fn get_security(&self) -> Vec<WifiSecurity> {
+        let features = parse_features(self);
+        let mut securities = Vec::new();
+
+        if features.is_empty() {
+            return vec![WifiSecurity::Open];
+        }
+
+        if features.contains(&"wpa2") {
+            if features.contains(&"psk sha256") {
+                securities.push(WifiSecurity::Wpa2PersonalPsk256);
+            } else if features.contains(&"psk") {
+                securities.push(WifiSecurity::Wpa2PersonalPsk);
+            }
+            if features.contains(&"802.1x sha256") {
+                securities.push(WifiSecurity::Wpa2EnterpriseEap256);
+            } else if features.contains(&"802.1x") {
+                securities.push(WifiSecurity::Wpa2EnterpriseEap);
+            }
+        }
+
+        if features.contains(&"wpa3") {
+            securities.push(WifiSecurity::Wpa3PersonalSae);
+            // OpenBSD cannot detect WPA3-Enterprise.
+        }
+
+        if features.contains(&"wpa1") {
+            if features.contains(&"psk") {
+                securities.push(WifiSecurity::WpaPersonal);
+            } else if features.contains(&"802.1x") {
+                securities.push(WifiSecurity::WpaEnterprise);
+            }
+        }
+
+        if features.contains(&"wep") {
+            securities.push(WifiSecurity::Wep);
+        }
+
+        securities
+    }
+}
+
+fn parse_features(wifi: &ScanResult) -> Vec<&'static str> {
+    let mut features = Vec::new();
 
     if wifi.nr_capinfo != 0 {
         if wifi.nr_capinfo & IEEE80211_CAPINFO_PRIVACY != 0 {
@@ -31,37 +73,40 @@ pub fn print_security(wifi: ScanResult) {
                 if wifi.nr_rsnprotos & IEEE80211_WPA_PROTO_WPA2 != 0 {
                     if wifi.nr_rsnakms & IEEE80211_WPA_AKM_SAE != 0 {
                         if wifi.nr_rsnakms == IEEE80211_WPA_AKM_SAE {
-                            print!(" [wpa3]");
+                            features.push("wpa3");
                         } else {
-                            print!(" [wpa3] [wpa2]");
+                            features.push("wpa3");
+                            features.push("wpa2");
                         }
                     } else {
-                        print!(" [wpa2]");
+                        features.push("wpa2");
                     }
                 }
 
                 if wifi.nr_rsnprotos & IEEE80211_WPA_PROTO_WPA1 != 0 {
-                    print!(" [wpa1]");
+                    features.push("wpa1");
                 }
             } else {
-                print!(" [wep]")
+                features.push("wep");
             }
 
             if wifi.nr_rsnakms & IEEE80211_WPA_AKM_8021X != 0 {
-                print!(" [802.1x]")
+                features.push("802.1x");
             }
 
             if wifi.nr_rsnakms & IEEE80211_WPA_AKM_SHA256_8021X != 0 {
-                print!(" [802.1x sha256]")
+                features.push("802.1x sha256");
             }
 
             if wifi.nr_rsnakms & IEEE80211_WPA_AKM_PSK != 0 {
-                print!(" [psk]")
+                features.push("psk");
             }
 
             if wifi.nr_rsnakms & IEEE80211_WPA_AKM_SHA256_PSK != 0 {
-                print!(" [psk sha256]")
+                features.push("psk sha256");
             }
         }
     }
+
+    features
 }

@@ -100,7 +100,7 @@ fn format_security(akm_suites: &[RsnAkmSuite]) -> Vec<WifiSecurity> {
             RsnAkmSuite::EAP => WifiSecurity::Wpa2EnterpriseEap,
             RsnAkmSuite::EAP256 => WifiSecurity::Wpa3EnterpriseEap256,
             RsnAkmSuite::EAPFT => WifiSecurity::Wpa2EnterpriseEapFt,
-            RsnAkmSuite::PSK256 => WifiSecurity::Wpa3PersonalPsk256,
+            RsnAkmSuite::PSK256 => WifiSecurity::Wpa2PersonalPsk256,
             RsnAkmSuite::PSKFT => WifiSecurity::Wpa2PersonalPskFt,
             RsnAkmSuite::SUITEBEAP256 => WifiSecurity::Wpa3EnterpriseSuiteBEap256,
             _ => WifiSecurity::Unknown,

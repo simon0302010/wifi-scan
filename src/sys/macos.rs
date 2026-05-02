@@ -52,32 +52,23 @@ fn get_security(network: &CWNetwork) -> Vec<WifiSecurity> {
     unsafe {
         let securities_dict = vec![
             (CWSecurity::None, WifiSecurity::Open),
-            (CWSecurity::WPA2Personal, WifiSecurity::Wpa2PersonalPsk),
-            (CWSecurity::WPA3Personal, WifiSecurity::Wpa3PersonalSae),
-            (CWSecurity::WPA2Enterprise, WifiSecurity::Wpa2EnterpriseEap),
-            (
-                CWSecurity::WPA3Enterprise,
-                WifiSecurity::Wpa3EnterpriseEap256,
-            ),
-            (
-                CWSecurity::WPAEnterpriseMixed,
-                WifiSecurity::Wpa2EnterpriseEapFt,
-            ),
-            (
-                CWSecurity::WPAPersonalMixed,
-                WifiSecurity::Wpa3PersonalPsk256,
-            ),
-            (
-                CWSecurity::WPAPersonalMixed,
-                WifiSecurity::Wpa2PersonalPskFt,
-            ),
-            (CWSecurity::WPA3Transition, WifiSecurity::Wpa3PersonalSaeFt),
             (CWSecurity::WEP, WifiSecurity::Wep),
             (CWSecurity::DynamicWEP, WifiSecurity::Wep),
+
+            (CWSecurity::WPAPersonal, WifiSecurity::WpaPersonal),
+            (CWSecurity::WPA2Personal, WifiSecurity::Wpa2PersonalPsk),
+            (CWSecurity::WPA3Personal, WifiSecurity::Wpa3PersonalSae),
+
+            (CWSecurity::WPAPersonalMixed, WifiSecurity::Wpa2PersonalPsk), // usually wpa1/wpa2
+            (CWSecurity::WPA3Transition, WifiSecurity::Wpa3PersonalSae),   // wpa2/wpa3 compatibility
+
+            (CWSecurity::WPAEnterprise, WifiSecurity::WpaEnterprise),
+            (CWSecurity::WPA2Enterprise, WifiSecurity::Wpa2EnterpriseEap),
+            (CWSecurity::WPA3Enterprise, WifiSecurity::Wpa3EnterpriseEap256),
+            (CWSecurity::WPAEnterpriseMixed, WifiSecurity::Wpa2EnterpriseEap),
+
             (CWSecurity::Enterprise, WifiSecurity::Enterprise),
             (CWSecurity::Personal, WifiSecurity::Personal),
-            (CWSecurity::WPAEnterprise, WifiSecurity::WpaEnterprise),
-            (CWSecurity::WPAPersonal, WifiSecurity::WpaPersonal),
             (CWSecurity::Unknown, WifiSecurity::Unknown),
         ];
 

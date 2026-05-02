@@ -56,17 +56,22 @@ pub enum WifiSecurity {
     Wpa2PersonalPsk,
     Wpa3PersonalSae,
     Wpa2EnterpriseEap,
+    Wpa2EnterpriseEap256,
     Wpa3EnterpriseEap256,
     Wpa3EnterpriseSuiteBEap256,
+    Wpa3EnterpriseEap,
     Wpa2EnterpriseEapFt,
-    Wpa3PersonalPsk256,
     Wpa2PersonalPskFt,
+    Wpa2PersonalPsk256,
     Wpa3PersonalSaeFt,
     Wep,
     WpaEnterprise,
     WpaPersonal,
+    /// This is very uncommon and only found on Windows
     Personal,
+    /// This is very uncommon and only found on Windows
     Enterprise,
+    /// This is very uncommon and only found on Windows
     Tdls,
     Unknown,
     Other(String),
@@ -130,11 +135,13 @@ impl fmt::Display for WifiSecurity {
             WifiSecurity::Wpa3EnterpriseSuiteBEap256 => {
                 write!(f, "WPA3-Enterprise (Suite B EAP-256)")
             }
-            WifiSecurity::Wpa3PersonalPsk256 => write!(f, "WPA3-Personal (PSK-256)"),
+            WifiSecurity::Wpa2PersonalPsk256 => write!(f, "WPA2-Personal (PSK-256)"),
             WifiSecurity::Wpa3PersonalSae => write!(f, "WPA3-Personal (SAE)"),
             WifiSecurity::Wpa3PersonalSaeFt => write!(f, "WPA3-Personal (SAE-FT)"),
             WifiSecurity::WpaEnterprise => write!(f, "WPA-Enterprise"),
             WifiSecurity::WpaPersonal => write!(f, "WPA-Personal"),
+            WifiSecurity::Wpa2EnterpriseEap256 => write!(f, "WPA2-Enterprise (EPA-256)"),
+            WifiSecurity::Wpa3EnterpriseEap => write!(f, "WPA3-Enterprise (EAP)")
         }
     }
 }
@@ -171,9 +178,9 @@ impl Wifi {
                 s,
                 WifiSecurity::Wpa3EnterpriseEap256
                     | WifiSecurity::Wpa3EnterpriseSuiteBEap256
-                    | WifiSecurity::Wpa3PersonalPsk256
                     | WifiSecurity::Wpa3PersonalSae
                     | WifiSecurity::Wpa3PersonalSaeFt
+                    | WifiSecurity::Wpa3EnterpriseEap
             )
         })
     }
@@ -187,6 +194,8 @@ impl Wifi {
                     | WifiSecurity::Wpa2EnterpriseEapFt
                     | WifiSecurity::Wpa2PersonalPsk
                     | WifiSecurity::Wpa2PersonalPskFt
+                    | WifiSecurity::Wpa2PersonalPsk256
+                    | WifiSecurity::Wpa2EnterpriseEap256
             )
         })
     }
@@ -202,6 +211,8 @@ impl Wifi {
                     | WifiSecurity::Wpa2EnterpriseEapFt
                     | WifiSecurity::Wpa3EnterpriseEap256
                     | WifiSecurity::Wpa3EnterpriseSuiteBEap256
+                    | WifiSecurity::Wpa3EnterpriseEap
+                    | WifiSecurity::Wpa2EnterpriseEap256
             )
         })
     }
@@ -215,9 +226,9 @@ impl Wifi {
                     | WifiSecurity::WpaPersonal
                     | WifiSecurity::Wpa2PersonalPsk
                     | WifiSecurity::Wpa2PersonalPskFt
-                    | WifiSecurity::Wpa3PersonalPsk256
                     | WifiSecurity::Wpa3PersonalSae
                     | WifiSecurity::Wpa3PersonalSaeFt
+                    | WifiSecurity::Wpa2PersonalPsk256
             )
         })
     }

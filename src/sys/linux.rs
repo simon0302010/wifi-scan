@@ -13,7 +13,6 @@ pub struct ScanLinux;
 
 impl WlanScanner for ScanLinux {
     /// Returns a list of WiFi hotspots in your area.
-    /// Open networks are recognised as having WPA2-PSK on Linux.
     /// Uses `nl80211-rs` and `netlink-rust` crates on Linux.
     /// On Linux, very frequent scans may produce unexpected results on some machines,
     /// scanning requires root privileges and results can be up to 2500ms old.
@@ -198,7 +197,7 @@ fn get_security(ie_data: Vec<u8>) -> Vec<WifiSecurity> {
                                 WifiSecurity::Wpa2EnterpriseEapFt
                             }
                             AuthenticationKeyManagement::PreSharedKeySha256 => {
-                                WifiSecurity::Wpa3PersonalPsk256
+                                WifiSecurity::Wpa2PersonalPsk256
                             }
                             AuthenticationKeyManagement::FastTransitionPreSharedKey => {
                                 WifiSecurity::Wpa2PersonalPskFt
