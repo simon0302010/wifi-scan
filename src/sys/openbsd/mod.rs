@@ -1,6 +1,7 @@
-use crate::{Error, Result, Wifi, WlanScanner, sys::openbsd::lswifi::{ConstCharArray, NetworkList, ScanResult, free_networks, get_networks}};
+use crate::{Error, Result, Wifi, WlanScanner, sys::openbsd::{lswifi::{ConstCharArray, NetworkList, ScanResult, free_networks, get_networks}, security::print_security}};
 
 mod lswifi;
+mod security;
 
 pub struct ScanOpenBsd;
 
@@ -15,6 +16,7 @@ impl WlanScanner for ScanOpenBsd {
 
             // TODO: missing fields
             let result = networks.iter().map(|network| {
+                print_security(network.clone());
                 Wifi {
                     mac: ConstCharArray(network.bssid).into(),
                     ssid: ConstCharArray(network.ssid).into(),

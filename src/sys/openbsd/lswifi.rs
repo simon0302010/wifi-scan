@@ -1,4 +1,4 @@
-use std::{ffi::CStr, os::raw::{c_char, c_int}};
+use std::{ffi::CStr, os::raw::{c_char, c_int, c_uint}};
 
 #[repr(C)]
 #[derive(Clone)]
@@ -8,7 +8,10 @@ pub struct ScanResult {
     pub ssid: *const c_char,
     pub bssid: *const c_char,
     pub rssi: c_int,
-    pub channel: c_int
+    pub channel: c_int,
+    pub nr_capinfo: c_uint,
+    pub nr_rsnprotos: c_uint,
+    pub nr_rsnakms: c_uint
 }
 
 unsafe extern "C" {

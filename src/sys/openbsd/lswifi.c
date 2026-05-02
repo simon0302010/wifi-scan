@@ -64,6 +64,9 @@ typedef struct {
 	char *bssid;
 	int rssi;
 	int channel;
+	uint nr_capinfo;
+	uint nr_rsnprotos;
+	uint nr_rsnakms;
 } lswifi_result;
 
 int network_name_is_sane(const u_char* name, int len)
@@ -112,7 +115,7 @@ void format_interface_data(struct wifidat* data, lswifi_result **networks, int *
 			continue;
 		}
 
-		printf("%s: nr_capinfo = %u; nr_rsnprotos = %u; nr_rsnakms = %u\n", ssid, network->nr_capinfo, network->nr_rsnprotos, network->nr_rsnakms);
+		// printf("%s: nr_capinfo = %u; nr_rsnprotos = %u; nr_rsnakms = %u\n", ssid, network->nr_capinfo, network->nr_rsnprotos, network->nr_rsnakms);
 
 		lswifi_result *result = malloc(sizeof(lswifi_result));
 		if (result == NULL) {
@@ -125,7 +128,10 @@ void format_interface_data(struct wifidat* data, lswifi_result **networks, int *
 				.ssid = ssid,
 				.bssid = bssid,
 				.rssi = rssi,
-				.channel = network->nr_channel
+				.channel = network->nr_channel,
+				.nr_capinfo = network->nr_capinfo & ~IEEE80211_CAPINFO_ESS,
+				.nr_rsnprotos = network->nr_rsnprotos,
+				.nr_rsnakms = network->nr_rsnakms
 			};
 		}
 
