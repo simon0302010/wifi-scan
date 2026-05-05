@@ -14,6 +14,7 @@ fn main() {
             .file("src/sys/freebsd/lswifi.c")
             .compile("lswifi");
 
+        println!("cargo:rustc-link-lib=80211");
         println!("cargo:rerun-if-changed=src/sys/freebsd/lswifi.c");
     }
 }
