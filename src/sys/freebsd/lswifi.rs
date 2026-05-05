@@ -1,6 +1,6 @@
 use std::{
     ffi::CStr,
-    os::raw::{c_char, c_int, c_uint},
+    os::raw::{c_char, c_int},
 };
 
 #[repr(C)]

@@ -77,13 +77,13 @@ static int scan_and_wait(if_ctx *ctx) {
             ifan = (struct if_announcemsghdr *)rtm;
         } while (rtm->rtm_type != RTM_IEEE80211 ||
             ifan->ifan_what != RTM_IEEE80211_SCAN);
-    } else if (errno == 22) {
+    } else if (errno == EINVAL) {
 		close(sroute);
-        return errno; // interface is not wifi
+        return 0; // interface is not wifi
     } else {
         perror("ioctl");
 		close(sroute);
-        return errno;
+        return -1;
     }
     close(sroute);
     printf("scan completed\n");
@@ -117,18 +117,19 @@ static int freq_to_channel(struct ieee80211req_chaninfo *chaninfo, uint16_t freq
     return 0;
 }
 
-static void get_scan_results(if_ctx *ctx, lswifi_result **networks, int *networks_idx) {
+static int get_scan_results(if_ctx *ctx, lswifi_result **networks, int *networks_idx) {
     uint8_t buf[24*1024];
-    char ssid[IEEE80211_NWID_LEN+1];
     const uint8_t *cp;
     int len, idlen;
 
     if (lib80211_get80211len(ctx->io_s, ctx->ifname, IEEE80211_IOC_SCAN_RESULTS, buf, sizeof(buf), &len) < 0) {
-        fprintf(stderr, "unable to get scan results\n");
-        return;
+        perror("lib80211_get80211len");
+        return -1;
     }
-    if (len < (int)sizeof(struct ieee80211req_scan_result))
-        return;
+    if (len < (int)sizeof(struct ieee80211req_scan_result)) {
+        errno = EIO;
+        return -1;
+    }
 
     getchaninfo(ctx);
 
@@ -149,17 +150,18 @@ static void get_scan_results(if_ctx *ctx, lswifi_result **networks, int *network
 
         char *bssid = malloc(24 * sizeof(char));
 		if (bssid == NULL) {
-			fprintf(stderr, "failed to allocate bssid\n");
-			exit(1);
+			perror("malloc");
+            return -1;
 		}
         mac_to_string(bssid, sr->isr_bssid);
 
         char *ssid = malloc((IEEE80211_NWID_LEN + 1) * sizeof(char));
 		if (ssid == NULL) {
-			fprintf(stderr, "failed to allocate ssid\n");
-			exit(1);
+            perror("malloc");
+            free(bssid);
+			return -1;
 		}
-        sprintf(ssid, "%.*s", idlen, idp);
+        snprintf(ssid, IEEE80211_NWID_LEN + 1, "%.*s", idlen, idp);
 
         int rssi = sr->isr_rssi + sr->isr_noise;
 
@@ -173,8 +175,16 @@ static void get_scan_results(if_ctx *ctx, lswifi_result **networks, int *network
         if (result == NULL) {
             free(ssid);
             free(bssid);
+            return -1;
         } else {
 			char *ifname = strdup(ctx->ifname);
+            if (ifname == NULL) {
+                perror("strdup");
+                free(ssid);
+                free(bssid);
+                free(result);
+                return -1;
+            }
             *result = (lswifi_result){
                 .interface = ifname,
                 .ssid = ssid,
@@ -192,14 +202,24 @@ static void get_scan_results(if_ctx *ctx, lswifi_result **networks, int *network
 				free(bssid);
 				free(result);
 				free(ifname);
-				return;
+				return 0;
 			}
         }
 
         cp += sr->isr_len, len -= sr->isr_len;
     } while (len >= (int)sizeof(struct ieee80211req_scan_result));
 
-    return;
+    return 0;
+}
+
+void free_networks(lswifi_result **networks) {
+    for (int i = 0; networks[i] != NULL; i++) {
+        free(networks[i]->bssid);
+        free(networks[i]->ssid);
+        free(networks[i]->interface);
+        free(networks[i]);
+    }
+    free(networks);
 }
 
 lswifi_result **get_networks() {
@@ -229,25 +249,27 @@ lswifi_result **get_networks() {
             .io_s = io_s
         };
 
+        if (scan_and_wait(&ctx) == 0) {
+            if (get_scan_results(&ctx, networks, &networks_idx) != 0) {
+                goto on_fail;
+            }
+        } else {
+            goto on_fail;
+        }
+
         if (scan_and_wait(&ctx) == 0)
             get_scan_results(&ctx, networks, &networks_idx); 
     }
 
     freeifaddrs(ifap);
-
     networks[networks_idx] = NULL;
-
     close(io_s);
-
     return networks;
-}
 
-void free_networks(lswifi_result **networks) {
-    for (int i = 0; networks[i] != NULL; i++) {
-        free(networks[i]->bssid);
-        free(networks[i]->ssid);
-        free(networks[i]->interface);
-        free(networks[i]);
-    }
-    free(networks);
+on_fail:
+    freeifaddrs(ifap);
+    networks[networks_idx] = NULL;
+    close(io_s);
+    free_networks(networks);
+    return NULL;
 }
