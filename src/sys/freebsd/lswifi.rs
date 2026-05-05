@@ -7,8 +7,8 @@ use std::{
 #[derive(Clone)]
 pub struct ScanResult {
     pub interface: *const c_char,
-    pub ssid: *const c_char,
     pub bssid: *const c_char,
+    pub ssid: *const c_char,
     pub rssi: c_int,
     pub channel: c_int,
 }
