@@ -148,9 +148,17 @@ static void get_scan_results(if_ctx *ctx, lswifi_result **networks, int *network
         }
 
         char *bssid = malloc(24 * sizeof(char));
+		if (bssid == NULL) {
+			fprintf(stderr, "failed to allocate bssid\n");
+			exit(1);
+		}
         mac_to_string(bssid, sr->isr_bssid);
 
         char *ssid = malloc((IEEE80211_NWID_LEN + 1) * sizeof(char));
+		if (ssid == NULL) {
+			fprintf(stderr, "failed to allocate ssid\n");
+			exit(1);
+		}
         sprintf(ssid, "%.*s", idlen, idp);
 
         int rssi = sr->isr_rssi + sr->isr_noise;
@@ -166,8 +174,9 @@ static void get_scan_results(if_ctx *ctx, lswifi_result **networks, int *network
             free(ssid);
             free(bssid);
         } else {
+			char *ifname = strdup(ctx->ifname);
             *result = (lswifi_result){
-                .interface = strdup(ctx->ifname),
+                .interface = ifname,
                 .ssid = ssid,
                 .bssid = bssid,
                 .rssi = rssi,
@@ -182,6 +191,7 @@ static void get_scan_results(if_ctx *ctx, lswifi_result **networks, int *network
 				free(ssid);
 				free(bssid);
 				free(result);
+				free(ifname);
 				return;
 			}
         }
@@ -202,7 +212,15 @@ lswifi_result **get_networks() {
     }
  
     int io_s = socket(AF_INET, SOCK_DGRAM, 0);
+	if (io_s == -1) {
+		fprintf(stderr, "failed to open socket\n");
+		exit(1);
+	}
     lswifi_result **networks = malloc(MAXWIFI * sizeof(lswifi_result *));
+	if (networks == NULL) {
+		fprintf(stderr, "failed to allocate networks\n");
+		exit(1);
+	}
     int networks_idx = 0;
 
     for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
