@@ -100,8 +100,6 @@ void format_interface_data(struct wifidat* data, lswifi_result **networks, int *
 			&& memcmp(network->nr_bssid, data->bssid.i_bssid, IEEE80211_ADDR_LEN) == 0
 		);
 
-		const char *interface = data->interface;
-
 		char *bssid = strdup(ether_ntoa((struct ether_addr *)network->nr_bssid));
 
 		int rssi = network->nr_max_rssi
@@ -123,7 +121,7 @@ void format_interface_data(struct wifidat* data, lswifi_result **networks, int *
 			free(bssid);
 		} else {
 			*result = (lswifi_result){
-				.interface = interface,
+				.interface = strdup(data->interface),
 				.connected = connected,
 				.ssid = ssid,
 				.bssid = bssid,
@@ -133,10 +131,10 @@ void format_interface_data(struct wifidat* data, lswifi_result **networks, int *
 				.nr_rsnprotos = network->nr_rsnprotos,
 				.nr_rsnakms = network->nr_rsnakms
 			};
-		}
 
-		networks[*networks_idx] = result;
-		(*networks_idx)++;
+			networks[*networks_idx] = result;
+			(*networks_idx)++;
+		}
 	}
 }
 
@@ -267,6 +265,7 @@ void free_networks(lswifi_result **networks)
 	for (int i = 0; networks[i] != NULL; i++) {
 		free(networks[i]->bssid);
 		free(networks[i]->ssid);
+		free(networks[i]->interface);
 		free(networks[i]);
 	}
 	free(networks);

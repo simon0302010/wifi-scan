@@ -1,14 +1,12 @@
 use crate::{
-    sys::openbsd::lswifi::{free_networks, get_networks, ConstCharArray, NetworkList, ScanResult},
-    Error, Result, Wifi, WlanScanner,
+    Error, Result, Wifi, WifiSecurity, WlanScanner, sys::freebsd::lswifi::{ConstCharArray, NetworkList, ScanResult, free_networks, get_networks}
 };
 
 mod lswifi;
-mod security;
 
-pub struct ScanOpenBsd;
+pub struct ScanFreeBsd;
 
-impl WlanScanner for ScanOpenBsd {
+impl WlanScanner for ScanFreeBsd {
     fn scan(&mut self) -> Result<Vec<Wifi>> {
         unsafe {
             let networks_ptr = get_networks();
@@ -17,6 +15,7 @@ impl WlanScanner for ScanOpenBsd {
             }
             let networks: Vec<ScanResult> = NetworkList(networks_ptr).into();
 
+            // TODO: missing fields
             let result = networks
                 .iter()
                 .map(|network| Wifi {
@@ -24,7 +23,7 @@ impl WlanScanner for ScanOpenBsd {
                     ssid: ConstCharArray(network.ssid).into(),
                     channel: network.channel as u32,
                     signal_level: network.rssi,
-                    security: network.get_security(),
+                    security: vec![WifiSecurity::Unknown] // TODO: populate
                 })
                 .collect();
 

@@ -9,3 +9,6 @@ pub mod windows;
 
 #[cfg(target_os = "openbsd")]
 pub mod openbsd;
+
+#[cfg(target_os = "freebsd")]
+pub mod freebsd;
