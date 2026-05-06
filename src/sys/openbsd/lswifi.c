@@ -227,15 +227,15 @@ lswifi_result **get_networks()
 
 		if (query_interface(ifa->ifa_name, data) == 0) {
 			SLIST_INSERT_HEAD(&interfaces, data, elems);
-		} /*else {
+		} else {
 			free(data);
 			continue;
-		} TODO: CONTINUE */
+		}
 	}
 
     if (wifi_interfaces == 0) {
         errno = ENXIO;
-        goto on_fail;
+        goto cleanup;
     }
 
 	int total_networks = 0;
@@ -244,7 +244,7 @@ lswifi_result **get_networks()
 
 	lswifi_result **networks = malloc(sizeof(lswifi_result *) * (total_networks + 1));
 	if (!networks)
-		goto on_fail;
+		goto cleanup;
 
 	int networks_idx = 0;
 
@@ -254,7 +254,7 @@ lswifi_result **get_networks()
 
 	networks[networks_idx] = NULL;
 
-on_fail:
+cleanup:
 	freeifaddrs(ifap);
 
 	while (!SLIST_EMPTY(&interfaces)) {
@@ -263,7 +263,7 @@ on_fail:
 		free(data);
 	}
 
-	return NULL;
+	return networks;
 }
 
 void free_networks(lswifi_result **networks)
