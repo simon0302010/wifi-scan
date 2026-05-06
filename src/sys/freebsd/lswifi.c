@@ -22,6 +22,8 @@
 
 static struct ieee80211req_chaninfo *chaninfo;
 
+static uint8_t wifi_interfaces = 0;
+
 typedef struct {
     int io_s;
     const char *ifname;
@@ -62,6 +64,8 @@ static int scan_and_wait(if_ctx *ctx) {
     ireq.i_len = sizeof(sr);
 
     if (ioctl(ctx->io_s, SIOCS80211, &ireq) == 0 || errno == EINPROGRESS) {
+        wifi_interfaces++;
+
         char buf[2048];
         struct if_announcemsghdr *ifan;
         struct rt_msghdr *rtm;
@@ -79,7 +83,7 @@ static int scan_and_wait(if_ctx *ctx) {
             ifan->ifan_what != RTM_IEEE80211_SCAN);
     } else if (errno == EINVAL) {
 		close(sroute);
-        return 0; // interface is not wifi
+        return -1; // interface is not wifi
     } else {
         perror("ioctl");
 		close(sroute);
@@ -243,6 +247,8 @@ lswifi_result **get_networks() {
 	}
     int networks_idx = 0;
 
+    wifi_interfaces = 0;
+
     for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
         if_ctx ctx = {
             .ifname = ifa->ifa_name,
@@ -253,12 +259,14 @@ lswifi_result **get_networks() {
             if (get_scan_results(&ctx, networks, &networks_idx) != 0) {
                 goto on_fail;
             }
-        } else {
+        } else if (errno != EINVAL) {
             goto on_fail;
         }
+    }
 
-        if (scan_and_wait(&ctx) == 0)
-            get_scan_results(&ctx, networks, &networks_idx); 
+    if (wifi_interfaces == 0) {
+        errno = ENXIO;
+        goto on_fail;
     }
 
     freeifaddrs(ifap);

@@ -29,3 +29,6 @@ cc = "^1.2"
 
 [target.'cfg(target_os = "freebsd")'.build-dependencies]
 cc = "^1.2"
+
+[dependencies]
+libc = "0.2.186"
