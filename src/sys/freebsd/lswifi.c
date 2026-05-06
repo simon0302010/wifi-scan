@@ -240,7 +240,7 @@ lswifi_result **get_networks() {
 		fprintf(stderr, "failed to open socket\n");
 		exit(1);
 	}
-    lswifi_result **networks = malloc(MAXWIFI * sizeof(lswifi_result *));
+    lswifi_result **networks = malloc((MAXWIFI + 1) * sizeof(lswifi_result *));
 	if (networks == NULL) {
 		fprintf(stderr, "failed to allocate networks\n");
 		exit(1);
