@@ -16,6 +16,7 @@
  */
 
 
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
@@ -38,6 +39,8 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <err.h>
+
+static int wifi_interfaces = 0;
 
 /* ---------------------------------------------------------------------- */
 
@@ -172,6 +175,8 @@ int query_interface(const char* if_name, struct wifidat* data)
 	
 	/* scan or, if error, return (the interface is no wifi...)*/
 	if (ioctl(sock, SIOCS80211SCAN, (caddr_t)&ifr) != 0) {
+		perror("ioctl");
+		printf("code %i", errno);
 		close(sock);
 		return -1;
 	}
@@ -189,14 +194,14 @@ int query_interface(const char* if_name, struct wifidat* data)
 		return -1;
 	}
 
-	/* next interface if nothing was found. */
 	if (!data->na.na_nodes) {
-		close(sock);
-		return -1;
+		fprintf(stderr, "warning: no networks found on %s\n", if_name);
 	}
 
 	close(sock);
-	
+
+	wifi_interfaces++;
+
 	return 0;
 }
 
@@ -214,21 +219,24 @@ lswifi_result **get_networks()
 		return NULL;
 	}
 
+	wifi_interfaces = 0;
+
 	/* query for interfaces and networks */
 	for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
 		data = malloc(sizeof(struct wifidat));
 
-		if(query_interface(ifa->ifa_name, data) == -1)
-		{
-			/* skip if this is no wifi interface or had errors */
+		if (query_interface(ifa->ifa_name, data) == 0) {
+			SLIST_INSERT_HEAD(&interfaces, data, elems);
+		} /*else {
 			free(data);
 			continue;
-		}
-		else
-		{
-			SLIST_INSERT_HEAD(&interfaces, data, elems);
-		}
+		} TODO: CONTINUE */
 	}
+
+    if (wifi_interfaces == 0) {
+        errno = ENXIO;
+        goto on_fail;
+    }
 
 	int total_networks = 0;
 	SLIST_FOREACH(data, &interfaces, elems)
@@ -236,7 +244,7 @@ lswifi_result **get_networks()
 
 	lswifi_result **networks = malloc(sizeof(lswifi_result *) * (total_networks + 1));
 	if (!networks)
-		goto cleanup;
+		goto on_fail;
 
 	int networks_idx = 0;
 
@@ -246,9 +254,7 @@ lswifi_result **get_networks()
 
 	networks[networks_idx] = NULL;
 
-	/* freeing memory */
-
-cleanup:
+on_fail:
 	freeifaddrs(ifap);
 
 	while (!SLIST_EMPTY(&interfaces)) {
@@ -257,7 +263,7 @@ cleanup:
 		free(data);
 	}
 
-	return networks;
+	return NULL;
 }
 
 void free_networks(lswifi_result **networks)

@@ -13,7 +13,12 @@ impl WlanScanner for ScanOpenBsd {
         unsafe {
             let networks_ptr = get_networks();
             if networks_ptr.is_null() {
-                return Err(Error::ScanFailed("Unknown error occurred".to_string()));
+                let errno = std::io::Error::last_os_error();
+                if errno.raw_os_error() == Some(libc::ENXIO) {
+                    return Err(Error::InterfaceError("No interfaces found".to_string()));
+                } else {
+                    return Err(Error::ScanFailed(format!("{}", errno)));
+                }
             }
             let networks: Vec<ScanResult> = NetworkList(networks_ptr).into();
 
