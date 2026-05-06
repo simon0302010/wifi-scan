@@ -1,5 +1,6 @@
 use crate::{
-    Error, Result, Wifi, WifiSecurity, WlanScanner, sys::freebsd::lswifi::{ConstCharArray, NetworkList, ScanResult, free_networks, get_networks}
+    sys::freebsd::lswifi::{free_networks, get_networks, ConstCharArray, NetworkList, ScanResult},
+    Error, Result, Wifi, WifiSecurity, WlanScanner,
 };
 
 mod lswifi;
@@ -28,7 +29,7 @@ impl WlanScanner for ScanFreeBsd {
                     ssid: ConstCharArray(network.ssid).into(),
                     channel: network.channel as u32,
                     signal_level: network.rssi,
-                    security: vec![WifiSecurity::Unknown] // TODO: populate
+                    security: vec![WifiSecurity::Unknown], // TODO: populate
                 })
                 .collect();
 
