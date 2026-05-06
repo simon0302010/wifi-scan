@@ -25,7 +25,7 @@ macOS               | ⚠️        | requires location access to show bssid and
 Linux               | ✅        |
 Windows             | ✅        |
 OpenBSD             | ✅        | wpa3-enterprise networks cannot be detected as such
-FreeBSD             | 🛠️        |
+FreeBSD             | ⚠️        | network security is not being exposed
 Android             | 🛠️        |
 
 ## Usage
