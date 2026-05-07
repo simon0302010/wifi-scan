@@ -256,6 +256,8 @@ lswifi_result **get_networks() {
             .io_s = io_s
         };
 
+        printf("trying interface %s\n", ifa->ifa_name);
+
         if (scan_and_wait(&ctx) == 0) {
             if (get_scan_results(&ctx, networks, &networks_idx) != 0) {
                 goto on_fail;
