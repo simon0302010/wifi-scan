@@ -12,7 +12,7 @@
 #include <net/route.h>
 #include <ifaddrs.h>
 #include <net80211/ieee80211.h>
-#include <net80211/ieee80211_netbsd.h>
+// #include <net80211/ieee80211_netbsd.h>
 #include <net80211/ieee80211_ioctl.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -94,8 +94,9 @@ static int get_scan_results(if_ctx *ctx, lswifi_result **networks, int *networks
     strlcpy(lenreq.i_name, ctx->ifname, sizeof(lenreq.i_name));
     lenreq.i_type = IEEE80211_IOC_SCAN_RESULTS;
     lenreq.i_data = buf;
+    lenreq.i_len = sizeof(buf);
 
-    if (ioctl(ctx->io_s, SIOCS80211, &lenreq) < 0) {
+    if (ioctl(ctx->io_s, SIOCG80211, &lenreq) < 0) {
         perror("ioctl");
         return -1;
     }
