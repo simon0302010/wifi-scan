@@ -126,7 +126,7 @@ static int get_scan_results(if_ctx *ctx, lswifi_result **networks, int *networks
 
         int rssi = sr->isr_rssi + sr->isr_noise;
 
-        printf("BSSID: %s, SSID: %s, FREQ: %u, RSSI: %i, CAPINFO: %u\n", bssid, ssid, sr->freq, rssi, sr->isr_capinfo);
+        printf("BSSID: %s, SSID: %s, FREQ: %u, RSSI: %i, CAPINFO: %u\n", bssid, ssid, sr->isr_freq, rssi, sr->isr_capinfo);
 
         lswifi_result *result = malloc(sizeof(lswifi_result));
         if (result == NULL) {
@@ -147,7 +147,7 @@ static int get_scan_results(if_ctx *ctx, lswifi_result **networks, int *networks
                 .ssid = ssid,
                 .bssid = bssid,
                 .rssi = rssi,
-                .freq = sr->freq,
+                .freq = sr->isr_freq,
             };
 
 			if (*networks_idx < MAXWIFI) {
@@ -164,7 +164,7 @@ static int get_scan_results(if_ctx *ctx, lswifi_result **networks, int *networks
         }
 
         cp += sr->isr_len, lenreq.i_len -= sr->isr_len;
-    } while (len >= (int)sizeof(struct ieee80211req_scan_result));
+    } while (lenreq.i_len >= (int)sizeof(struct ieee80211req_scan_result));
 
     return 0;
 }
