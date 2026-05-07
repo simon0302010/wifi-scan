@@ -26,7 +26,7 @@ Linux               | ✅        |
 Windows             | ✅        |
 OpenBSD             | ✅        | wpa3-enterprise networks cannot be detected as such
 FreeBSD             | ⚠️        | network security is not being exposed
-NetBSD              | ⚠️        | network security is not being exposed
+NetBSD              | ⚠️        | network security is not being exposed, drivers may report positive rssi numbers
 Android             | 🛠️        |
 
 ## Usage
