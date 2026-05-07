@@ -126,7 +126,7 @@ static int get_scan_results(if_ctx *ctx, lswifi_result **networks, int *networks
 		}
         snprintf(ssid, IEEE80211_NWID_LEN + 1, "%.*s", sr->isr_ssid_len, idp);
 
-        int rssi = (int8_t)sr->isr_rssi + (int8_t)sr->isr_noise;
+        int rssi = (int8_t)sr->isr_rssi; // + (int8_t)sr->isr_noise;
 
         // printf("BSSID: %s, SSID: %s, FREQ: %u, RSSI: %i, CAPINFO: %u\n", bssid, ssid, sr->isr_freq, rssi, sr->isr_capinfo);
 
