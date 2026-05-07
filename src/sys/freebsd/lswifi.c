@@ -91,7 +91,7 @@ static int scan_and_wait(if_ctx *ctx) {
         return -1;
     }
     close(sroute);
-    printf("scan completed\n");
+    // printf("scan completed\n");
     return 0;
 }
 
@@ -174,7 +174,7 @@ static int get_scan_results(if_ctx *ctx, lswifi_result **networks, int *networks
         if (channel == 0)
             fprintf(stderr, "warning: could not find channel\n");
 
-        printf("BSSID: %s, SSID: %s, CHANNEL: %u, RSSI: %i, CAPINFO: %u\n", bssid, ssid, channel, rssi, sr->isr_capinfo);
+        // printf("BSSID: %s, SSID: %s, CHANNEL: %u, RSSI: %i, CAPINFO: %u\n", bssid, ssid, channel, rssi, sr->isr_capinfo);
 
         lswifi_result *result = malloc(sizeof(lswifi_result));
         if (result == NULL) {

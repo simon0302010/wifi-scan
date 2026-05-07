@@ -76,7 +76,7 @@ static int scan_and_wait(if_ctx *ctx) {
         return -1;
     }
     close(sroute);
-    printf("scan completed\n");
+    // printf("scan completed\n");
     return 0;
 }
 
@@ -128,7 +128,7 @@ static int get_scan_results(if_ctx *ctx, lswifi_result **networks, int *networks
 
         int rssi = sr->isr_rssi + sr->isr_noise;
 
-        printf("BSSID: %s, SSID: %s, FREQ: %u, RSSI: %i, CAPINFO: %u\n", bssid, ssid, sr->isr_freq, rssi, sr->isr_capinfo);
+        // printf("BSSID: %s, SSID: %s, FREQ: %u, RSSI: %i, CAPINFO: %u\n", bssid, ssid, sr->isr_freq, rssi, sr->isr_capinfo);
 
         lswifi_result *result = malloc(sizeof(lswifi_result));
         if (result == NULL) {
@@ -227,7 +227,7 @@ lswifi_result **get_networks() {
             .io_s = io_s
         };
 
-        printf("trying interface %s\n", ifa->ifa_name);
+        // printf("trying interface %s\n", ifa->ifa_name);
 
         if (scan_and_wait(&ctx) == 0) {
             if (get_scan_results(&ctx, networks, &networks_idx) != 0) {
