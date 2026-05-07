@@ -227,6 +227,8 @@ lswifi_result **get_networks()
 	struct ifaddrs *ifa;  /* current interface in iteration over ifap */
 	struct wifidat* data;
 
+	lswifi_result **networks = NULL;
+
 	SLIST_INIT(&interfaces);
 	
 	/* iterate over interfaces */
@@ -258,7 +260,6 @@ lswifi_result **get_networks()
 	SLIST_FOREACH(data, &interfaces, elems)
 		total_networks += data->na.na_nodes;
 
-	lswifi_result **networks = NULL;
 	networks = malloc(sizeof(lswifi_result *) * (total_networks + 1));
 	if (!networks)
 		goto on_fail;
