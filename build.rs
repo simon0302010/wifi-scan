@@ -17,4 +17,13 @@ fn main() {
         println!("cargo:rustc-link-lib=80211");
         println!("cargo:rerun-if-changed=src/sys/freebsd/lswifi.c");
     }
+
+    #[cfg(target_os = "netbsd")]
+    {
+        cc::Build::new()
+            .file("src/sys/netbsd/lswifi.c")
+            .compile("lswifi");
+
+        println!("cargo:rerun-if-changed=src/sys/netbsd/lswifi.c");
+    }
 }

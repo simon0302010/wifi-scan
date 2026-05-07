@@ -270,32 +270,30 @@ pub trait WlanScanner {
 /// ```
 pub fn scan() -> Result<Vec<Wifi>> {
     #[cfg(target_os = "macos")]
-    {
-        let mut scanner = sys::macos::ScanMac;
-        scanner.scan()
-    }
+    let mut scanner = sys::macos::ScanMac;
 
     #[cfg(target_os = "linux")]
-    {
-        let mut scanner = sys::linux::ScanLinux;
-        scanner.scan()
-    }
+    let mut scanner = sys::linux::ScanLinux;
 
     #[cfg(target_os = "windows")]
-    {
-        let mut scanner = sys::windows::ScanWindows;
-        scanner.scan()
-    }
+    let mut scanner = sys::windows::ScanWindows;
 
     #[cfg(target_os = "openbsd")]
-    {
-        let mut scanner = sys::openbsd::ScanOpenBsd;
-        scanner.scan()
-    }
+    let mut scanner = sys::openbsd::ScanOpenBsd;
 
     #[cfg(target_os = "freebsd")]
-    {
-        let mut scanner = sys::freebsd::ScanFreeBsd;
-        scanner.scan()
-    }
+    let mut scanner = sys::freebsd::ScanFreeBsd;
+
+    #[cfg(target_os = "netbsd")]
+    let mut scanner = sys::netbsd::ScanNetBsd;
+
+    #[cfg(not(any(target_os = "macos",
+                target_os = "linux",
+                target_os = "windows",
+                target_os = "openbsd",
+                target_os = "freebsd",
+                target_os = "netbsd")))]
+    compile_error!("wifi_scan does not support this platform");
+
+    scanner.scan()
 }

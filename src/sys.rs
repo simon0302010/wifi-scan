@@ -12,3 +12,6 @@ pub mod openbsd;
 
 #[cfg(target_os = "freebsd")]
 pub mod freebsd;
+
+#[cfg(target_os = "netbsd")]
+pub mod netbsd;
