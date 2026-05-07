@@ -50,6 +50,7 @@ using: `cargo run --example scan`.
 
 ## Changelog
 
+- 0.7.2 - added partial FreeBSD support
 - 0.7.1 - added full support for OpenBSD
 - 0.7.0 - changed api for scan function. also added other functions. more details in the docs.
 - 0.6.3 - switch to using `corewlan` on macOS due to the removal of the `airport` utility
