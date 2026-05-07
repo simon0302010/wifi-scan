@@ -1,6 +1,5 @@
 /* Taken from simon0302010/lswifi-freebsd */
 
-#include <asm-generic/errno-base.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdint.h>
