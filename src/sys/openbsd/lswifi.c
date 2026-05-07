@@ -148,7 +148,11 @@ int query_interface(const char* if_name, struct wifidat* data)
 	int inwid, ibssid;
 
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
-	
+	if (sock < 0) {
+		perror("socket");
+		return -1;
+	}
+
 	/* store interface name for later */
 	data->interface = if_name;
 
@@ -205,6 +209,18 @@ int query_interface(const char* if_name, struct wifidat* data)
 	return 0;
 }
 
+void free_networks(lswifi_result **networks)
+{
+	if (!networks) return;
+	for (int i = 0; networks[i] != NULL; i++) {
+		free(networks[i]->bssid);
+		free(networks[i]->ssid);
+		free(networks[i]->interface);
+		free(networks[i]);
+	}
+	free(networks);
+}
+
 lswifi_result **get_networks()
 {
 	struct ifaddrs *ifap; /* all existing interfaces */
@@ -235,7 +251,7 @@ lswifi_result **get_networks()
 
     if (wifi_interfaces == 0) {
         errno = ENXIO;
-        goto cleanup;
+        goto on_fail;
     }
 
 	int total_networks = 0;
@@ -244,7 +260,7 @@ lswifi_result **get_networks()
 
 	lswifi_result **networks = malloc(sizeof(lswifi_result *) * (total_networks + 1));
 	if (!networks)
-		goto cleanup;
+		goto on_fail;
 
 	int networks_idx = 0;
 
@@ -254,7 +270,6 @@ lswifi_result **get_networks()
 
 	networks[networks_idx] = NULL;
 
-cleanup:
 	freeifaddrs(ifap);
 
 	while (!SLIST_EMPTY(&interfaces)) {
@@ -264,15 +279,17 @@ cleanup:
 	}
 
 	return networks;
-}
 
-void free_networks(lswifi_result **networks)
-{
-	for (int i = 0; networks[i] != NULL; i++) {
-		free(networks[i]->bssid);
-		free(networks[i]->ssid);
-		free(networks[i]->interface);
-		free(networks[i]);
+on_fail:
+	freeifaddrs(ifap);
+
+	while (!SLIST_EMPTY(&interfaces)) {
+		data = SLIST_FIRST(&interfaces);
+		SLIST_REMOVE_HEAD(&interfaces, elems);
+		free(data);
 	}
-	free(networks);
+
+	free_networks(networks);
+
+	return NULL;
 }
