@@ -1,5 +1,6 @@
 /* Taken from simon0302010/lswifi-freebsd */
 
+#include <asm-generic/errno-base.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -81,7 +82,7 @@ static int scan_and_wait(if_ctx *ctx) {
             ifan = (struct if_announcemsghdr *)rtm;
         } while (rtm->rtm_type != RTM_IEEE80211 ||
             ifan->ifan_what != RTM_IEEE80211_SCAN);
-    } else if (errno == EINVAL) {
+    } else if (errno == EINVAL || errno == ENOTTY) {
 		close(sroute);
         return -1; // interface is not wifi
     } else {
@@ -259,7 +260,7 @@ lswifi_result **get_networks() {
             if (get_scan_results(&ctx, networks, &networks_idx) != 0) {
                 goto on_fail;
             }
-        } else if (errno != EINVAL) {
+        } else if (errno != EINVAL && errno != ENOTTY) {
             goto on_fail;
         }
     }

@@ -1,5 +1,6 @@
 /* Taken from simon0302010/lswifi-freebsd */
 
+#include <asm-generic/errno-base.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -18,6 +19,7 @@
 #include <sys/socket.h>
 
 #define MAXWIFI 1536
+#define MAXINTERFACES 256
 
 static uint8_t wifi_interfaces = 0;
 
@@ -46,7 +48,7 @@ static int scan_and_wait(if_ctx *ctx) {
     memset(&ireq, 0, sizeof(ireq));
     strlcpy(ireq.i_name, ctx->ifname, sizeof(ireq.i_name));
     ireq.i_type = IEEE80211_IOC_SCAN_REQ;
-    ireq.i_val = 1;
+    ireq.i_val = 0;
 
     if (ioctl(ctx->io_s, SIOCS80211, &ireq) == 0 || errno == EINPROGRESS) {
         wifi_interfaces++;
@@ -66,7 +68,7 @@ static int scan_and_wait(if_ctx *ctx) {
             ifan = (struct if_announcemsghdr *)rtm;
         } while (rtm->rtm_type != RTM_IEEE80211 ||
             ifan->ifan_what != RTM_IEEE80211_SCAN);
-    } else if (errno == EINVAL) {
+    } else if (errno == EINVAL || errno == ENOTTY) {
 		close(sroute);
         return -1; // interface is not wifi
     } else {
@@ -202,18 +204,37 @@ lswifi_result **get_networks() {
     int networks_idx = 0;
 
     wifi_interfaces = 0;
+    const char *seen_interfaces[MAXINTERFACES] = {NULL};
+    int seen_interfaces_idx = 0;
 
     for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
+        int found_iface = 0;
+        for (int i = 0; i < seen_interfaces_idx; i++) {
+            if (!strcmp(seen_interfaces[i], ifa->ifa_name)) {
+                found_iface = 1;
+                break;
+            }
+        }
+        if (found_iface)
+            continue;;
+
+        if (seen_interfaces_idx < MAXINTERFACES) {
+            seen_interfaces[seen_interfaces_idx] = ifa->ifa_name;
+            seen_interfaces++;
+        }
+
         if_ctx ctx = {
             .ifname = ifa->ifa_name,
             .io_s = io_s
         };
 
+        printf("trying interface %s\n", ifa->ifa_name);
+
         if (scan_and_wait(&ctx) == 0) {
             if (get_scan_results(&ctx, networks, &networks_idx) != 0) {
                 goto on_fail;
             }
-        } else if (errno != EINVAL) {
+        } else if (errno != EINVAL && errno != ENOTTY) {
             goto on_fail;
         }
     }
