@@ -12,7 +12,7 @@
 #include <net/route.h>
 #include <ifaddrs.h>
 #include <net80211/ieee80211.h>
-// #include <net80211/ieee80211_netbsd.h>
+#include <net80211/ieee80211_netbsd.h>
 #include <net80211/ieee80211_ioctl.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
