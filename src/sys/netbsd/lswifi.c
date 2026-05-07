@@ -219,7 +219,7 @@ lswifi_result **get_networks() {
 
         if (seen_interfaces_idx < MAXINTERFACES) {
             seen_interfaces[seen_interfaces_idx] = ifa->ifa_name;
-            seen_interfaces++;
+            seen_interfaces_idx++;
         }
 
         if_ctx ctx = {
