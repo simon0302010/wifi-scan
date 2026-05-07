@@ -287,12 +287,14 @@ pub fn scan() -> Result<Vec<Wifi>> {
     #[cfg(target_os = "netbsd")]
     let mut scanner = sys::netbsd::ScanNetBsd;
 
-    #[cfg(not(any(target_os = "macos",
-                target_os = "linux",
-                target_os = "windows",
-                target_os = "openbsd",
-                target_os = "freebsd",
-                target_os = "netbsd")))]
+    #[cfg(not(any(
+        target_os = "macos",
+        target_os = "linux",
+        target_os = "windows",
+        target_os = "openbsd",
+        target_os = "freebsd",
+        target_os = "netbsd"
+    )))]
     compile_error!("wifi_scan does not support this platform");
 
     scanner.scan()

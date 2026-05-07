@@ -1,5 +1,7 @@
 use crate::{
-    Error, Result, Wifi, WifiSecurity, WlanScanner, misc::get_channel, sys::netbsd::lswifi::{ConstCharArray, NetworkList, ScanResult, free_networks, get_networks}
+    misc::get_channel,
+    sys::netbsd::lswifi::{free_networks, get_networks, ConstCharArray, NetworkList, ScanResult},
+    Error, Result, Wifi, WifiSecurity, WlanScanner,
 };
 
 mod lswifi;

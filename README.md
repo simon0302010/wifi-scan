@@ -26,6 +26,7 @@ Linux               | ✅        |
 Windows             | ✅        |
 OpenBSD             | ✅        | wpa3-enterprise networks cannot be detected as such
 FreeBSD             | ⚠️        | network security is not being exposed
+NetBSD              | ⚠️        | network security is not being exposed
 Android             | 🛠️        |
 
 ## Usage
@@ -50,6 +51,7 @@ using: `cargo run --example scan`.
 
 ## Changelog
 
+- 0.7.3 - added partial NetBSD support
 - 0.7.2 - added partial FreeBSD support
 - 0.7.1 - added full support for OpenBSD
 - 0.7.0 - changed api for scan function. also added other functions. more details in the docs.
